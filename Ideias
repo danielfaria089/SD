@@ -1,0 +1,11 @@
+Servidor ->aceita queries em tcp e devolve os resultados para serem mostrados na app
+			->cliente tem de responder que recebeu, assim temos a certeza que ta tudo certo
+Cliente ->envia queries para o servidor e recebe os resultados em tcp
+			->servidor tem de responder que recebeu, assim temos a certeza que ta tudo certo
+			
+
+Ações:
+			
+Cliente interage com a view->View comunica com a controller->controller comunica com a model.
+	-Caso seja necessária informação do servidor->model envia uma mensagem TCP para o server->server responde,também em tcp->model responde que 		recebeu
+Model envia a informação de volta para o controller->Controller trata os dados para serem apresentados pela View->View mostra o resultado ao 		utilizador.
