@@ -1,12 +1,9 @@
-package View.GUI;
+package client.View.GUI;
 
-import Controller.Controller;
+import client.Controller.Controller;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.time.LocalDate;
 import java.util.ArrayList;
 
 public class LoginWindow extends Window{
@@ -60,7 +57,7 @@ public class LoginWindow extends Window{
         JButton cancel=new JButton("Cancelar");
 
         login.addActionListener(e->{
-            //getController.login(username.getText(),password.getPassword());
+            getController().login(username.getText(),password.getPassword());
         });
         cancel.addActionListener(e->this.close(true));
         cancel.setBackground(Color.RED);

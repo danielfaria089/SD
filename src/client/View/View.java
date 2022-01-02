@@ -1,4 +1,4 @@
-package View;
+package client.View;
 
 public class View {
 
@@ -6,7 +6,4 @@ public class View {
 
     }
 
-    private void login(){
-
-    }
 }

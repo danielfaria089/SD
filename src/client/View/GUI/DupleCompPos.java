@@ -1,6 +1,5 @@
-package View.GUI;
+package client.View.GUI;
 
-import javax.swing.*;
 import java.awt.*;
 
 public class DupleCompPos {

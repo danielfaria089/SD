@@ -1,6 +1,6 @@
-package View.GUI;
+package client.View.GUI;
 
-import Controller.Controller;
+import client.Controller.Controller;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -145,7 +145,7 @@ public class Window {
         JPanel panel1=new JPanel(new FlowLayout(FlowLayout.CENTER));
         JPanel panel2=new JPanel(new FlowLayout(FlowLayout.CENTER));
 
-        JLabel label = new JLabel(getController().getLoggado()+" está autenticado");
+        JLabel label = new JLabel(getController().getLogged()+" está autenticado");
         panel1.add(label);
 
         JButton logout=new JButton("Logout");

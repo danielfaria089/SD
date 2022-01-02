@@ -1,6 +1,6 @@
-package Controller;
+package client.Controller;
 
-import Model.Model;
+import client.Model.Model;
 
 public class Controller {
 
@@ -12,6 +12,11 @@ public class Controller {
 
     public boolean login(String username,char[]password){
         //
+        return true;
+    }
+
+    public String getLogged(){
+        return "";
     }
 
 
