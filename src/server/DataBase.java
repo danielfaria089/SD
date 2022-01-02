@@ -38,6 +38,4 @@ public class DataBase {
     public boolean checkDate(Flight f1, Flight f2){
         return f1.getDate().equals(f2.getDate());
     }
-
-    public
 }
