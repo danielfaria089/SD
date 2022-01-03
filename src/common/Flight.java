@@ -52,6 +52,10 @@ public class Flight {
         return occupation;
     }
 
+    public void setOccupation(int occupation) {
+        this.occupation = occupation;
+    }
+
     public void addClient(Client c){
         clients.put(c.getUsername(),c);
     }
