@@ -36,6 +36,10 @@ public class DataBase {
         accounts.put(u,c);
     }
 
+    public boolean checkLogIn(String id, char[] pass){
+        return Arrays.equals(accounts.get(id).getPassword(), pass);
+    }
+
     public List<Flight> getSameOrigin(String origin){
         List<Flight> ret = new ArrayList<>();
         for(Flight f : flights.values()){
