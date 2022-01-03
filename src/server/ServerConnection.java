@@ -24,20 +24,24 @@ public class ServerConnection implements Runnable{
 
     public boolean receive() throws IOException {
         Frame frame=new Frame();
-        frame.deserializeDIS(input);
+        frame.deserialize(input);
         switch (frame.getType()){
-            case 0:
-                return true;
-            case 1:
+            case (byte)1:
                 password(frame);
-                return true;
-            default:
-                return false;
+                break;
+            case (byte)2:
+                reservation(frame);
+                break;
         }
+        return true;
     }
 
     private void password(Frame frame) throws IOException {
-        
+
+    }
+
+    private void reservation(Frame frame){
+
     }
 
     @Override

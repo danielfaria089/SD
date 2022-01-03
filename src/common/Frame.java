@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class Frame {
-    private byte type;
+    private byte type;//0 -> mensagem basica , 1 -> login, 2 -> reservar voo , 3 ->
     private List<byte[]> data;
 
     public Frame(){
@@ -64,15 +64,6 @@ public class Frame {
         return bao.toByteArray();
     }
 
-    public void serializeDOS(DataOutputStream dos) throws IOException {
-        dos.write(type);
-        dos.writeInt(data.size());
-        for(byte[]block:data){
-            dos.writeInt(block.length);
-            dos.write(block);
-        }
-    }
-
     public void deserialize(byte[] input) throws IOException {
         data=new ArrayList<>();
 
@@ -89,11 +80,11 @@ public class Frame {
         }
     }
 
-    public void deserializeDIS(DataInputStream input) throws IOException {
+    public void deserialize(DataInputStream input) throws IOException {
         data=new ArrayList<>();
         type=input.readByte();
         int count=input.readInt();
-        int size=0;
+        int size;
         byte[] buffer;
         for(int i=0;i<count;i++){
             size=input.readInt();
