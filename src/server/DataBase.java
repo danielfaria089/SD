@@ -1,5 +1,6 @@
 package server;
 
+import common.Account;
 import common.Flight;
 
 import java.time.LocalDate;
@@ -8,12 +9,12 @@ import java.util.*;
 public class DataBase {
 
     private Map<String, Flight> flights;
-    private Map<String, Client> clients;
+    private Map<String, Account> accounts;
     private Map<String, List<Flight>> stopOver;
 
     public DataBase(){
         this.flights = new HashMap<>();
-        this.clients = new HashMap<>();
+        this.accounts = new HashMap<>();
         this.stopOver = new HashMap<>();
     }
 
@@ -25,14 +26,14 @@ public class DataBase {
 
     public void removeFligth(String id){
         flights.remove(id);
-        for(Client c : clients.values()){
+        for(Account c : accounts.values()){
             c.removeFlight(id);
         }
     }
 
-    public void addClient(String u, String p){
-        Client c = new Client(u, p);
-        clients.put(u,c);
+    public void addClient(String u, char[] p){
+        Account c = new Account(u, p);
+        accounts.put(u,c);
     }
 
     public List<Flight> getSameOrigin(String origin){
@@ -43,14 +44,10 @@ public class DataBase {
         return ret;
     }
 
-    public boolean checkDate(Flight f1, Flight f2){
-        return f1.getDate().equals(f2.getDate());
-    }
-
     public void addStopOver(Flight f){
         List<Flight> aux = new ArrayList<>();
         for(Flight flight : flights.values()){
-            if(checkDate(f,flight)) stopOver.put(randomString(), getSameOrigin(f.getDestination()));
+            stopOver.put(randomString(), getSameOrigin(f.getDestination()));
         }
     }
 
@@ -78,22 +75,6 @@ public class DataBase {
                 .limit(targetStringLength)
                 .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
                 .toString();
-    }
-
-    public void endReservesForToday(){
-        for(Flight f: flights.values()){
-            if(f.getDate().equals(LocalDate.now()))
-                f.setOccupation(f.getCapacity());
-        }
-
-        for(Client c : clients.values()){
-            c.removeFlightsByDay(LocalDate.now());
-        }
-
-        for(Map.Entry<String, List<Flight>> map : stopOver.entrySet()){
-            List<Flight> aux = map.getValue();
-            if(aux.get(0).getDate().equals(LocalDate.now())) stopOver.remove(map.getKey());
-        }
     }
 
     public Map<String, List<Flight>> getFlightsWithOrigin(String origin){
@@ -153,4 +134,16 @@ public class DataBase {
 
         return ret;
     }
+
+    public void dayClosure(){
+        for(Flight f : flights.values()){
+            f.setOccupation(f.getCapacity());
+            for(Account acc : accounts.values()){
+                acc.removeFlight(f.getId());
+                f.removeClient(acc);
+            }
+        }
+    }
+
+
 }

@@ -1,7 +1,5 @@
 package common;
 
-import server.Client;
-
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -13,19 +11,17 @@ public class Flight {
     private String id;
     private String origin;
     private String destination;
-    private LocalDate date;
     private int capacity;
     private int occupation;
-    private Map<String, Client> clients;
+    private Map<String, Account> accounts;
 
     public Flight(String i, String o, String d, int c, int occupation){
         this.id = i;
         this.origin = o;
         this.destination = d;
-        this.date = LocalDate.now();
         this.capacity = c;
         this.occupation = occupation;
-        this.clients = new HashMap<>();
+        this.accounts = new HashMap<>();
     }
 
     public String getId() {
@@ -40,10 +36,6 @@ public class Flight {
         return destination;
     }
 
-    public LocalDate getDate() {
-        return date;
-    }
-
     public int getCapacity() {
         return capacity;
     }
@@ -56,16 +48,16 @@ public class Flight {
         this.occupation = occupation;
     }
 
-    public void addClient(Client c){
-        clients.put(c.getUsername(),c);
+    public void addClient(Account c){
+        accounts.put(c.getUsername(),c);
     }
 
-    public void removeClient(Client c){
-        clients.remove(c.getUsername());
+    public void removeClient(Account c){
+        accounts.remove(c.getUsername());
     }
 
-    public List<Client> getListClients(){
-        return new ArrayList<>(clients.values());
+    public List<Account> getListClients(){
+        return new ArrayList<>(accounts.values());
     }
 
     public boolean checkOccupation(){
