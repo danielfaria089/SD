@@ -1,25 +1,23 @@
 package server;
 
+import common.Credentials;
 import common.Frame;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 
 public class ServerConnection implements Runnable{
-    public static final int PORT=5678;
-
     private Socket socket;
     private DataInputStream input;
     private DataOutputStream output;
-    private Accounts accounts;
+    private DataBase dataBase;
 
-    public ServerConnection(Socket socket,Accounts accounts) throws IOException {
+    public ServerConnection(Socket socket,DataBase dataBase) throws IOException {
         this.socket=socket;
-        this.accounts=accounts;
-        input=new DataInputStream(socket.getInputStream());
-        output=new DataOutputStream(socket.getOutputStream());
+        this.dataBase=dataBase;
+        input=new DataInputStream(new BufferedInputStream(socket.getInputStream()));
+        output=new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
     }
 
     public boolean receive() throws IOException {
@@ -27,7 +25,7 @@ public class ServerConnection implements Runnable{
         frame.deserialize(input);
         switch (frame.getType()){
             case (byte)1:
-                password(frame);
+                login(frame);
                 break;
             case (byte)2:
                 reservation(frame);
@@ -36,8 +34,20 @@ public class ServerConnection implements Runnable{
         return true;
     }
 
-    private void password(Frame frame) throws IOException {
-
+    private void login(Frame frame) throws IOException {
+        Credentials credentials=new Credentials(frame);
+        if(dataBase.checkLogIn(credentials.getUsername(), credentials.getPassword())){
+            Frame success=new Frame((byte)0);
+            success.addBlock("SUCCESS".getBytes(StandardCharsets.UTF_8));
+            output.write(success.serialize());
+            output.flush();
+        }
+        else{
+            Frame failure=new Frame((byte)0);
+            failure.addBlock("ERROR".getBytes(StandardCharsets.UTF_8));
+            output.write(failure.serialize());
+            output.flush();
+        }
     }
 
     private void reservation(Frame frame){

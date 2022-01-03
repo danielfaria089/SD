@@ -4,6 +4,7 @@ import client.Controller.Controller;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.IOException;
 import java.util.ArrayList;
 
 public class LoginWindow extends Window{
@@ -57,7 +58,19 @@ public class LoginWindow extends Window{
         JButton cancel=new JButton("Cancelar");
 
         login.addActionListener(e->{
-            getController().login(username.getText(),password.getPassword());
+            try {
+                if(getController().login(username.getText(),password.getPassword())){
+                    popupMessage("Loggado com sucesso",SUCCESS);
+                    //apresentar nova janela
+                }
+                else{
+                    popupMessage("Credenciais erradas",ERROR);
+                    username.setText("");
+                    password.setText("");
+                }
+            } catch (IOException ioException) {
+                popupMessage("Erro interno",ERROR);
+            }
         });
         cancel.addActionListener(e->this.close(true));
         cancel.setBackground(Color.RED);

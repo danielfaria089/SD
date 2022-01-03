@@ -33,4 +33,12 @@ public class Credentials {
             password=Helpers.bytesToChar(data.get(1));
         }
     }
+
+    public String getUsername(){
+        return username;
+    }
+
+    public char[] getPassword(){
+        return Arrays.copyOf(password,password.length);
+    }
 }

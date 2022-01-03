@@ -4,6 +4,9 @@ import java.nio.charset.StandardCharsets;
 
 public class Helpers {
 
+    public static final String IP="localhost";
+    public static final int PORT=5678;
+
     public static byte[] intToByteArray(int value) {
         return new byte[] {
                 (byte)(value >> 24),

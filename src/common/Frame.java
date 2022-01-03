@@ -70,7 +70,7 @@ public class Frame {
         DataInputStream inputStream=new DataInputStream(new ByteArrayInputStream(input));
         type=inputStream.readByte();
         int count=inputStream.readInt();
-        int size=0;
+        int size;
         byte[] buffer;
         for(int i=0;i<count;i++){
             size=inputStream.readInt();

@@ -145,7 +145,7 @@ public class Window {
         JPanel panel1=new JPanel(new FlowLayout(FlowLayout.CENTER));
         JPanel panel2=new JPanel(new FlowLayout(FlowLayout.CENTER));
 
-        JLabel label = new JLabel(getController().getLogged()+" está autenticado");
+        JLabel label = new JLabel(" está autenticado");
         panel1.add(label);
 
         JButton logout=new JButton("Logout");

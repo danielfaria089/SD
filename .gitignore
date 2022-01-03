@@ -1,5 +1,6 @@
 *.iml
 .idea
+/out
 client/.idea
 server/.idea
 common/.idea
