@@ -1,5 +1,6 @@
 package server;
 
+import common.Exceptions.DayClosedException;
 import common.Exceptions.FlightFull;
 import common.Exceptions.FlightNotFound;
 import common.Flight;
@@ -14,19 +15,20 @@ public class Flights {
     //Número máximo de escalas
     public static final int MAX_FLIGHTS=3;
 
-    //Voos todos
-    private Set<Flight> flights;
-    //Adjacências entre as várias cidades
-    private final Map<String, Set<String>> adjencencies;
+    private Set<Flight> flights; //Voos do dia
+    private final Map<String, Set<String>> adjencencies; //Adjacências entre as várias cidades
+    private boolean closed; //Se o dia está fechado ou não
 
     //Construtor com voos do dia e adjacências de cidades
     public Flights(Set<Flight> flights,Map<String, Set<String>> adjencencies){
         this.adjencencies=adjencencies;
         this.flights=flights.stream().map(Flight::clone).collect(Collectors.toSet());
+        closed=false;
     }
 
     //Adiciona uma viagem ao dia
-    public void addTrip(Trip trip,String id) throws FlightFull, FlightNotFound {
+    public void addTrip(Trip trip,String id) throws FlightFull, FlightNotFound, DayClosedException {
+        if(closed)throw new DayClosedException();
         boolean found;
         for(Flight flight1:trip.getStopOvers()){
             found=false;
@@ -35,7 +37,6 @@ public class Flights {
                     flight2.addPassenger(id);
                     found=true;
                 }
-
             }
             if(!found)throw new FlightNotFound(flight1.getOrigin()+" -> "+flight1.getDestination()+" not found");
         }
@@ -59,7 +60,10 @@ public class Flights {
                 String o=strings.get(i);
                 String d=strings.get(i+1);
                 for(Flight flight:flights){
-                    if(o.equals(flight.getOrigin())&&d.equals(flight.getDestination()))trip.addFlight(flight);
+                    if(flight.equals(o,d)) {
+                        trip.addFlight(flight);
+                        break;
+                    }
                 }
             }
             trips.add(trip);
@@ -72,12 +76,14 @@ public class Flights {
         if(current.size()>MAX_FLIGHTS)return;
         current.add(origin);
         for(String string: adjencencies.get(origin)){
-            List<String> newCurrent=new ArrayList<>(current);
-            newCurrent.add(string);
-            if(string.equals(destination)){
-                added.add(newCurrent);
+            if(!current.contains(string)){
+                List<String> newCurrent=new ArrayList<>(current);
+                newCurrent.add(string);
+                if(string.equals(destination)){
+                    added.add(newCurrent);
+                }
+                else depthFirst(origin, destination, added, newCurrent);
             }
-            else depthFirst(origin, destination, added, newCurrent);
         }
     }
 }

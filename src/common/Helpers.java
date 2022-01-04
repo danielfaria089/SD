@@ -16,7 +16,7 @@ public class Helpers {
                 (byte)value};
     }
 
-    public static int fromByteArray(byte[] bytes) {
+    public static int intFromByteArray(byte[] bytes) {
         return bytes[0] << 24 | (bytes[1] & 0xFF) << 16 | (bytes[2] & 0xFF) << 8 | (bytes[3] & 0xFF);
     }
 

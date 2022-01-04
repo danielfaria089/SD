@@ -19,7 +19,7 @@ public class ClientConnection {
         output=new DataOutputStream(new BufferedOutputStream(clientSocket.getOutputStream()));
     }
 
-    public boolean login(String username,char[]password) throws IOException {
+    public int login(String username,char[]password) throws IOException {
         Credentials credentials=new Credentials(username,password);
         output.write(credentials.createFrame().serialize());
         output.flush();
@@ -28,8 +28,9 @@ public class ClientConnection {
         if(response.getType()==0){
             List<byte[]> dados=response.getData();
             String resposta=new String(dados.get(0), StandardCharsets.UTF_8);
-            return resposta.equals("SUCCESS");
+            if(resposta.equals("CLIENT"))return 1;
+            else if(response.equals("ADMIN"))return 2;
         }
-        else return false;
+        else return -1;
     }
 }

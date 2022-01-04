@@ -14,6 +14,14 @@ public class Flight {
     private int capacity;
     private Set<String> accountIds;//Ids dos utilizadores que marcaram voo
 
+    public Flight(){
+        this.id="";
+        this.origin = "";
+        this.destination = "";
+        this.capacity = 0;
+        this.accountIds = new TreeSet<>();
+    }
+    
     public Flight(String i, String o, String d, int c){
         this.id = i;
         this.origin = o;
@@ -78,6 +86,14 @@ public class Flight {
 
     public Flight clone(){
         return new Flight(this);
+    }
+
+    public boolean equals(Flight flight){
+        return this.compareFlight(flight)==0;
+    }
+
+    public boolean equals(String o,String d){
+        return o.equals(origin) && d.equals(destination);
     }
 
     public int compareFlight(Flight flight){

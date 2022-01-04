@@ -59,9 +59,16 @@ public class LoginWindow extends Window{
 
         login.addActionListener(e->{
             try {
-                if(getController().login(username.getText(),password.getPassword())){
+                int result;
+                if((result = getController().login(username.getText(),password.getPassword()))>0){
                     popupMessage("Loggado com sucesso",SUCCESS);
-                    //apresentar nova janela
+                    setBase(false);
+                    Window window=new ClientWindow(getController(),otherWindowsSize);//Remover este construtor quando tiver pronto
+                    /*
+                    if(result==1)window=new ClientWindow(getController(),otherWindowsSize);
+                    else window=new AdminWindow(getController(),otherWindowsSize);
+                    */
+                    window.show();
                 }
                 else{
                     popupMessage("Credenciais erradas",ERROR);

@@ -12,7 +12,7 @@ public class Controller {
         this.model=model;
     }
 
-    public boolean login(String username,char[]password) throws IOException {
+    public int login(String username,char[]password) throws IOException {
         return model.login(username,password);
     }
 

@@ -1,17 +1,11 @@
 package server;
 
 import common.Account;
-import common.Exceptions.AccountException;
-import common.Exceptions.FlightException;
-import common.Exceptions.FlightFull;
-import common.Exceptions.FlightNotFound;
+import common.Exceptions.*;
 import common.Flight;
 import common.Trip;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.time.LocalDate;
 import java.util.*;
 
@@ -19,7 +13,7 @@ public class DataBase {
 
 
     private Set<Flight> defaultFlights;
-    private final Map<String, Set<String>> adjencencies;
+    private Map<String, Set<String>> adjencencies;
 
     private Map<LocalDate,Flights> bookings;
     private Map<String, Account> accounts;
@@ -47,7 +41,7 @@ public class DataBase {
     }
 
     //Adicionar todos os voos de uma trip
-    public void addTrip(String id, Trip trip,LocalDate date) throws FlightFull, FlightNotFound {
+    public void addTrip(String id, Trip trip,LocalDate date) throws FlightFull, FlightNotFound, DayClosedException {
         if(!bookings.containsKey(date))bookings.put(date,new Flights(defaultFlights,adjencencies));
         Flights flights=bookings.get(date);
         flights.addTrip(trip,id);
@@ -63,6 +57,7 @@ public class DataBase {
             if(flight.compareFlight(flight2)==0)throw new FlightException("Already exists");
         }
         defaultFlights.add(flight);
+        addAdjencency(flight.getOrigin(), flight.getDestination());
         for(Flights flights:bookings.values()){
             flights.addDefaultFlight(flight);
         }
