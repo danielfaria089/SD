@@ -53,7 +53,7 @@ public class DataBase {
         flights.addTrip(trip,id);
         for(Flight flight:trip.getStopOvers()){
             Account client = accounts.get(id);
-            client.addFlight(flight/*,date*/);
+            client.addFlight(flight,date);
         }
     }
 
@@ -72,14 +72,32 @@ public class DataBase {
         return Arrays.equals(accounts.get(id).getPassword(), pass);
     }
 
-    private void readAdjencencies(String filename) throws IOException {
-        BufferedReader reader =new BufferedReader(new FileReader(filename));
+    private void addAdjencency(String origem,String destino){
+        if(!adjencencies.containsKey(origem))adjencencies.put(origem,new TreeSet<>());
+        adjencencies.get(origem).add(destino);
+    }
+
+    private void readFlights(String filename) throws IOException{
+        BufferedReader reader = new BufferedReader((new FileReader(filename)));
         String line;
-        while((line=reader.readLine())!=null){
-            String[] strings=line.split(":,");
-
+        while ((line = reader.readLine())!=null){
+            String[] strings = line.split(";");
+            Flight f = new Flight(strings[0],strings[1],strings[2],Integer.parseInt(strings[3]));
+            addAdjencency(f.getOrigin(),f.getDestination());
+            defaultFlights.add(f);
         }
+    }
 
+    private void writeFlights(String filename) throws IOException {
+        PrintWriter writer = new PrintWriter((new FileWriter(filename)));
+        for(Flight f : defaultFlights){
+            writer.println(f.getId() + ";" +
+                    f.getOrigin() + ";" +
+                    f.getDestination() + ";" +
+                    f.getCapacity());
+        }
+        writer.flush();
+        writer.close();
     }
 }
 

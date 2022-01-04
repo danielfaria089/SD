@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class Frame {
-    private byte type;//0 -> mensagem basica , 1 -> login, 2 -> reservar voo , 3 ->
+    private byte type;//0 -> mensagem basica , 1 -> login, 2 -> voo
     private List<byte[]> data;
 
     public Frame(){

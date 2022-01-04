@@ -4,6 +4,8 @@ import common.Account;
 import common.Exceptions.FlightFull;
 import common.Flight;
 
+import java.time.LocalDate;
+
 public class FlightManager {
 
     private Account acc;
@@ -12,8 +14,8 @@ public class FlightManager {
         acc = new Account(id,pass);
     }
 
-    public void flightReservation(Flight f) throws FlightFull {
-        acc.addFlight(f);
+    public void flightReservation(Flight f, LocalDate date) throws FlightFull {
+        acc.addFlight(f,date);
         f.addPassenger(acc);
     }
 

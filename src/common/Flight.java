@@ -3,6 +3,7 @@ package common;
 import common.Exceptions.FlightFull;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class Flight {
@@ -87,5 +88,23 @@ public class Flight {
             return flight.destination.compareTo(this.destination);
         }
         else return flight.origin.compareTo(this.origin);
+    }
+
+    public Frame createFrame(){
+        Frame frame = new Frame((byte) 2);
+        frame.addBlock(id.getBytes(StandardCharsets.UTF_8));
+        frame.addBlock(origin.getBytes(StandardCharsets.UTF_8));
+        frame.addBlock(destination.getBytes(StandardCharsets.UTF_8));
+        frame.addBlock(Helpers.intToByteArray(capacity));
+        return frame;
+    }
+
+    public void readFrame(Frame frame){
+        if(frame.getType()!='2') return;
+        List<byte[]> bytes = frame.getData();
+        id = new String(bytes.get(0),StandardCharsets.UTF_8);
+        origin = new String(bytes.get(1),StandardCharsets.UTF_8);
+        destination = new String(bytes.get(2),StandardCharsets.UTF_8);
+        capacity = Helpers.intFromByteArray(bytes.get(3));
     }
 }

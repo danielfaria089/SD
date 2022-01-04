@@ -10,7 +10,7 @@ public class Account {
 
     private String username;
     private char[] password;
-    private Map<String, Flight> flights;
+    private Map<String, Pair<Flight,LocalDate>> flights;
 
     public Account(String u, char[] p){
         this.username = u;
@@ -26,8 +26,8 @@ public class Account {
         return password;
     }
 
-    public void addFlight(Flight f){
-        flights.put(f.getId(), f);
+    public void addFlight(Flight f, LocalDate date){
+        flights.put(f.getId(), new Pair<>(f,date));
     }
 
     public void removeFlight(String id){
