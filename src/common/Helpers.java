@@ -1,6 +1,7 @@
 package common;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Random;
 
 public class Helpers {
 
@@ -25,6 +26,18 @@ public class Helpers {
 
     public static char[] bytesToChar(byte[] array){
         return new String(array,StandardCharsets.UTF_8).toCharArray();
+    }
+
+    public static String randomString() {
+        int leftLimit = 97; // letter 'a'
+        int rightLimit = 122; // letter 'z'
+        int targetStringLength = 7;
+        Random random = new Random();
+
+        return random.ints(leftLimit, rightLimit + 1)
+                .limit(targetStringLength)
+                .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
+                .toString();
     }
 
 }

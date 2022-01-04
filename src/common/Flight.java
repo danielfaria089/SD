@@ -1,10 +1,9 @@
 package common;
 
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import common.Exceptions.FlightFull;
+
+import java.io.IOException;
+import java.util.*;
 
 public class Flight {
 
@@ -12,16 +11,22 @@ public class Flight {
     private String origin;
     private String destination;
     private int capacity;
-    private int occupation;
-    private Map<String, Account> accounts;
+    private Set<String> accountIds;//Ids dos utilizadores que marcaram voo
 
-    public Flight(String i, String o, String d, int c, int occupation){
+    public Flight(String i, String o, String d, int c){
         this.id = i;
         this.origin = o;
         this.destination = d;
         this.capacity = c;
-        this.occupation = occupation;
-        this.accounts = new HashMap<>();
+        this.accountIds = new TreeSet<>();
+    }
+
+    public Flight(Flight flight){
+        this.id = flight.id;
+        this.origin= flight.origin;
+        this.destination=flight.destination;
+        this.capacity=flight.capacity;
+        this.accountIds =new TreeSet<>(flight.accountIds);
     }
 
     public String getId() {
@@ -41,26 +46,46 @@ public class Flight {
     }
 
     public int getOccupation() {
-        return occupation;
+        return accountIds.size();//Quantidade de utilizadores
     }
 
-    public void setOccupation(int occupation) {
-        this.occupation = occupation;
+    public void addPassenger(Account c) throws FlightFull {
+        if(this.checkOccupation()) accountIds.add(c.getUsername());
+        else throw new FlightFull();
     }
 
-    public void addClient(Account c){
-        accounts.put(c.getUsername(),c);
+    public void addPassenger(String id) throws FlightFull {
+        if(this.checkOccupation()) accountIds.add(id);
+        else throw new FlightFull();
     }
 
     public void removeClient(Account c){
-        accounts.remove(c.getUsername());
+        accountIds.remove(c.getUsername());
     }
 
-    public List<Account> getListClients(){
-        return new ArrayList<>(accounts.values());
+    public void removeClient(String id){
+        accountIds.remove(id);
+    }
+
+    public List<String> getClients(){
+        return new ArrayList<>(accountIds);
     }
 
     public boolean checkOccupation(){
-        return occupation > 0;
+        return accountIds.size() < capacity;
+    }
+
+    public Flight clone(){
+        return new Flight(this);
+    }
+
+    public int compareFlight(Flight flight){
+        if(origin==null && flight.origin!=null)return -1;
+        if(origin!=null && flight.origin==null)return 1;
+        if(origin == null)return 0;
+        if(flight.origin.compareTo(this.origin)==0) {
+            return flight.destination.compareTo(this.destination);
+        }
+        else return flight.origin.compareTo(this.origin);
     }
 }
