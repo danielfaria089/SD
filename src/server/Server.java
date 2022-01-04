@@ -1,5 +1,6 @@
 package server;
 
+import common.Exceptions.AccountException;
 import common.Helpers;
 
 import java.io.IOException;
@@ -9,6 +10,11 @@ import java.net.Socket;
 public class Server {
 
     public static void main(String[] args){
+
+    }
+}
+
+/*
         try{
             boolean run=true;
             DataBase base=new DataBase();
@@ -19,8 +25,7 @@ public class Server {
                 Socket clientsocket=serverSocket.accept();
                 new ServerConnection(clientsocket,base).run();
             }
-        } catch (IOException e) {
+        } catch (IOException | AccountException e) {
             e.printStackTrace();
         }
-    }
-}
+ */

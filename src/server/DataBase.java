@@ -1,12 +1,17 @@
 package server;
 
 import common.Account;
+import common.Exceptions.AccountException;
 import common.Exceptions.FlightException;
 import common.Exceptions.FlightFull;
 import common.Exceptions.FlightNotFound;
 import common.Flight;
 import common.Trip;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.*;
 
@@ -28,11 +33,28 @@ public class DataBase {
         accounts=new HashMap<>();
     }
 
+    public void addClient(String username,char[]password) throws AccountException {
+        if(accounts.containsKey(username))throw new AccountException();
+        else{
+            accounts.put(username,new Account(username,password));
+        }
+    }
+    public void addClient(Account c) throws AccountException {
+        if(accounts.containsKey(c.getUsername()))throw new AccountException();
+        else{
+            accounts.put(c.getUsername(),c);
+        }
+    }
+
     //Adicionar todos os voos de uma trip
     public void addTrip(String id, Trip trip,LocalDate date) throws FlightFull, FlightNotFound {
         if(!bookings.containsKey(date))bookings.put(date,new Flights(defaultFlights,adjencencies));
         Flights flights=bookings.get(date);
         flights.addTrip(trip,id);
+        for(Flight flight:trip.getStopOvers()){
+            Account client = accounts.get(id);
+            client.addFlight(flight/*,date*/);
+        }
     }
 
     //Adicionar voo aos voos padrão
@@ -46,6 +68,19 @@ public class DataBase {
         }
     }
 
+    public boolean checkLogIn(String id, char[] pass){
+        return Arrays.equals(accounts.get(id).getPassword(), pass);
+    }
+
+    private void readAdjencencies(String filename) throws IOException {
+        BufferedReader reader =new BufferedReader(new FileReader(filename));
+        String line;
+        while((line=reader.readLine())!=null){
+            String[] strings=line.split(":,");
+
+        }
+
+    }
 }
 
 /*

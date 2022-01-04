@@ -1,6 +1,7 @@
 package client.Model;
 
 import common.Account;
+import common.Exceptions.FlightFull;
 import common.Flight;
 
 public class FlightManager {
@@ -11,9 +12,9 @@ public class FlightManager {
         acc = new Account(id,pass);
     }
 
-    public void flightReservation(Flight f){
+    public void flightReservation(Flight f) throws FlightFull {
         acc.addFlight(f);
-        f.addClient(acc);
+        f.addPassenger(acc);
     }
 
     public void cancelFlight(Flight f){
