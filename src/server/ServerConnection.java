@@ -20,7 +20,7 @@ public class ServerConnection implements Runnable{
         output=new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
     }
 
-    public boolean receive() throws IOException {
+    public boolean receive() throws IOException, WrongFrameTypeException, AccountException {
         Frame frame=new Frame();
         frame.deserialize(input);
         switch (frame.getType()){
@@ -59,7 +59,7 @@ public class ServerConnection implements Runnable{
         while(true) {
             try {
                 if (!receive()) break;
-            } catch (IOException e) {
+            } catch (IOException | WrongFrameTypeException | AccountException e) {
                 e.printStackTrace();
             }
         }

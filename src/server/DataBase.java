@@ -3,6 +3,7 @@ package server;
 import common.Account;
 import common.Exceptions.*;
 import common.Flight;
+import common.Frame;
 import common.Trip;
 
 import java.io.*;
@@ -30,7 +31,7 @@ public class DataBase {
     public void addClient(String username,char[]password) throws AccountException {
         if(accounts.containsKey(username))throw new AccountException();
         else{
-            accounts.put(username,new Account(username,password));
+            accounts.put(username,new Account(username,password,false));
         }
     }
     public void addClient(Account c) throws AccountException {
@@ -41,7 +42,7 @@ public class DataBase {
     }
 
     //Adicionar todos os voos de uma trip
-    public void addTrip(String id, Trip trip,LocalDate date) throws FlightFull, FlightNotFound, DayClosedException {
+    public void addTrip(String id, Trip trip,LocalDate date) throws FlightFullException, FlightNotFoundException, DayClosedException {
         if(!bookings.containsKey(date))bookings.put(date,new Flights(defaultFlights,adjencencies));
         Flights flights=bookings.get(date);
         flights.addTrip(trip,id);
@@ -93,6 +94,20 @@ public class DataBase {
         }
         writer.flush();
         writer.close();
+    }
+
+    public Set<String> getAllCities(){
+        return adjencencies.keySet();
+    }
+
+    public List<Frame> createFlightsFrame() throws IOException {
+        List<Frame> frames = new ArrayList<>();
+        for(Flight f : defaultFlights){
+            Frame frame = new Frame((byte) 4);
+            frame.addBlock(f.createFrame().serialize());
+            frames.add(frame);
+        }
+        return frames;
     }
 }
 

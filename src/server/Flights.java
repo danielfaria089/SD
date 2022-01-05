@@ -1,8 +1,8 @@
 package server;
 
 import common.Exceptions.DayClosedException;
-import common.Exceptions.FlightFull;
-import common.Exceptions.FlightNotFound;
+import common.Exceptions.FlightFullException;
+import common.Exceptions.FlightNotFoundException;
 import common.Flight;
 import common.Trip;
 
@@ -27,7 +27,7 @@ public class Flights {
     }
 
     //Adiciona uma viagem ao dia
-    public void addTrip(Trip trip,String id) throws FlightFull, FlightNotFound, DayClosedException {
+    public void addTrip(Trip trip,String id) throws FlightFullException, FlightNotFoundException, DayClosedException {
         if(closed)throw new DayClosedException();
         boolean found;
         for(Flight flight1:trip.getStopOvers()){
@@ -38,7 +38,7 @@ public class Flights {
                     found=true;
                 }
             }
-            if(!found)throw new FlightNotFound(flight1.getOrigin()+" -> "+flight1.getDestination()+" not found");
+            if(!found)throw new FlightNotFoundException(flight1.getOrigin()+" -> "+flight1.getDestination()+" not found");
         }
     }
 

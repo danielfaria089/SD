@@ -1,8 +1,8 @@
 package common;
 
-import common.Exceptions.FlightFull;
+import common.Exceptions.FlightFullException;
+import common.Exceptions.WrongFrameTypeException;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
@@ -21,7 +21,7 @@ public class Flight {
         this.capacity = 0;
         this.accountIds = new TreeSet<>();
     }
-    
+
     public Flight(String i, String o, String d, int c){
         this.id = i;
         this.origin = o;
@@ -58,14 +58,14 @@ public class Flight {
         return accountIds.size();//Quantidade de utilizadores
     }
 
-    public void addPassenger(Account c) throws FlightFull {
+    public void addPassenger(Account c) throws FlightFullException {
         if(this.checkOccupation()) accountIds.add(c.getUsername());
-        else throw new FlightFull();
+        else throw new FlightFullException();
     }
 
-    public void addPassenger(String id) throws FlightFull {
+    public void addPassenger(String id) throws FlightFullException {
         if(this.checkOccupation()) accountIds.add(id);
-        else throw new FlightFull();
+        else throw new FlightFullException();
     }
 
     public void removeClient(Account c){
@@ -122,5 +122,6 @@ public class Flight {
         origin = new String(bytes.get(1),StandardCharsets.UTF_8);
         destination = new String(bytes.get(2),StandardCharsets.UTF_8);
         capacity = Helpers.intFromByteArray(bytes.get(3));
+        return new Flight(id,origin,destination,capacity);
     }
 }
