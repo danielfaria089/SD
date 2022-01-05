@@ -1,5 +1,7 @@
 package common;
 
+import common.Exceptions.WrongFrameTypeException;
+
 import javax.swing.*;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -15,7 +17,7 @@ public class Credentials {
         this.password= Arrays.copyOf(password,password.length);
     }
 
-    public Credentials(Frame frame){
+    public Credentials(Frame frame) throws WrongFrameTypeException{
         this.readFrame(frame);
     }
 
@@ -26,12 +28,11 @@ public class Credentials {
         return frame;
     }
 
-    public void readFrame(Frame frame){
-        if(frame.getType()==(byte)1){
-            List<byte[]> data=frame.getData();
-            username=new String(data.get(0),StandardCharsets.UTF_8);
-            password=Helpers.bytesToChar(data.get(1));
-        }
+    public void readFrame(Frame frame) throws WrongFrameTypeException{
+        if(frame.getType()!=(byte)1)throw new WrongFrameTypeException();
+        List<byte[]> data=frame.getData();
+        username=new String(data.get(0),StandardCharsets.UTF_8);
+        password=Helpers.bytesToChar(data.get(1));
     }
 
     public String getUsername(){

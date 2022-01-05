@@ -68,6 +68,11 @@ public class DataBase {
         return Arrays.equals(accounts.get(id).getPassword(), pass);
     }
 
+    public boolean checkAdmin(String id) throws AccountException {
+        if(!accounts.containsKey(id))throw new AccountException();
+        return accounts.get(id).isAdmin();
+    }
+
     private void addAdjencency(String origem,String destino){
         if(!adjencencies.containsKey(origem))adjencencies.put(origem,new TreeSet<>());
         adjencencies.get(origem).add(destino);

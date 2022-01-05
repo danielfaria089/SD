@@ -38,6 +38,10 @@ public class Flight {
         this.accountIds =new TreeSet<>(flight.accountIds);
     }
 
+    public Flight(Frame frame)throws WrongFrameTypeException{
+        this.readFrame(frame);
+    }
+
     public String getId() {
         return id;
     }
@@ -107,7 +111,7 @@ public class Flight {
     }
 
     public Frame createFrame(){
-        Frame frame = new Frame((byte) 2);
+        Frame frame = new Frame((byte)2);
         frame.addBlock(id.getBytes(StandardCharsets.UTF_8));
         frame.addBlock(origin.getBytes(StandardCharsets.UTF_8));
         frame.addBlock(destination.getBytes(StandardCharsets.UTF_8));
@@ -115,8 +119,8 @@ public class Flight {
         return frame;
     }
 
-    public void readFrame(Frame frame){
-        if(frame.getType()!='2') return;
+    public Flight readFrame(Frame frame)throws WrongFrameTypeException{
+        if(frame.getType()!=(byte)2) throw new WrongFrameTypeException();
         List<byte[]> bytes = frame.getData();
         id = new String(bytes.get(0),StandardCharsets.UTF_8);
         origin = new String(bytes.get(1),StandardCharsets.UTF_8);

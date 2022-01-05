@@ -30,7 +30,8 @@ public class ClientConnection {
             String resposta=new String(dados.get(0), StandardCharsets.UTF_8);
             if(resposta.equals("CLIENT"))return 1;
             else if(response.equals("ADMIN"))return 2;
+            else return -1;
         }
-        else return -1;
+        else return -2;
     }
 }

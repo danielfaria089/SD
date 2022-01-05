@@ -1,6 +1,7 @@
 package common;
 
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.util.Random;
 
 public class Helpers {
@@ -26,6 +27,14 @@ public class Helpers {
 
     public static char[] bytesToChar(byte[] array){
         return new String(array,StandardCharsets.UTF_8).toCharArray();
+    }
+
+    public static byte[] localDateToBytes(LocalDate date){
+        return date.toString().getBytes(StandardCharsets.UTF_8);
+    }
+
+    public static LocalDate localDateFromBytes(byte[] data){
+        return LocalDate.parse(new String(data,StandardCharsets.UTF_8));
     }
 
     public static String randomString() {

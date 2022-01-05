@@ -7,7 +7,11 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class Frame {
-    private byte type;//0 -> mensagem basica , 1 -> login, 2 -> voo
+    private byte type;/*0 -> mensagem basica, 1 -> login, 2 -> flight, 3 -> trip,
+                        4 -> allFlights, 5 -> AccountsFlights, 6 -> Cidades
+
+
+                        */
     private List<byte[]> data;
 
     public Frame(){
@@ -26,6 +30,10 @@ public class Frame {
         for(byte[]block:data){
             this.data.add(Arrays.copyOf(block,block.length));
         }
+    }
+
+    public Frame(byte[]frameBytes) throws IOException{
+        this.deserialize(frameBytes);
     }
 
     public void addBlock(byte[] block){

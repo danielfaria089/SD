@@ -1,5 +1,6 @@
 package common;
 
+import common.Exceptions.WrongFrameTypeException;
 import server.Flights;
 
 import java.io.IOException;
@@ -9,12 +10,16 @@ import java.util.stream.Collectors;
 
 //Viagem, guarda voos que representam uma ou mais escalas que o utilizador irá realizar
 public class Trip {
-    //Escalas
-    private List<Flight> stopOvers;
+
+    private List<Flight> stopOvers;//Escalas
 
     //Construtor nulo
     public Trip(){
         stopOvers=new ArrayList<>();
+    }
+
+    public Trip(Frame frame) throws IOException,WrongFrameTypeException{
+        this.readFrame(frame);
     }
 
     //Construtor com escalas
@@ -65,5 +70,24 @@ public class Trip {
             if(flight1.compareFlight(flight2)!=0)return flight1.compareFlight(flight2);
         }
         return 0;
+    }
+
+    public Frame createFrame() throws IOException{
+        Frame frame=new Frame((byte)3);
+        for(Flight flight:stopOvers){
+            frame.addBlock(flight.createFrame().serialize());
+        }
+        return frame;
+    }
+
+    public void readFrame(Frame frame)throws IOException, WrongFrameTypeException{
+        if(frame.getType()!=(byte)3)throw new WrongFrameTypeException();
+        List<byte[]>data=frame.getData();
+        stopOvers=new ArrayList<>();
+        for(byte[]block:data){
+            Frame voo=new Frame(block);
+            Flight flight=new Flight(voo);
+            stopOvers.add(flight);
+        }
     }
 }
