@@ -13,6 +13,7 @@ public class Flights {
     public static final int MAX_FLIGHTS=3;
 
     private Set<Flight> flights; //Voos do dia
+    private Set<Booking> reservations;
     private final Map<String, Set<String>> adjencencies; //Adjacências entre as várias cidades
     private boolean closed; //Se o dia está fechado ou não
 

@@ -1,5 +1,6 @@
 package server;
 
+import client.Model.ClientConnection;
 import common.Account;
 import common.Exceptions.*;
 import common.Flight;
@@ -105,7 +106,7 @@ public class DataBase {
     public List<Frame> createFlightsFrame() throws IOException {
         List<Frame> frames = new ArrayList<>();
         for(Flight f : defaultFlights){
-            Frame frame = new Frame((byte) 4);
+            Frame frame = new Frame((byte) 2);
             frame.addBlock(f.createFrame().serialize());
             frames.add(frame);
         }

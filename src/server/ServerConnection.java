@@ -37,9 +37,17 @@ public class ServerConnection implements Runnable{
             case (byte)3:
                 reservation(frame);//Recebe uma trip e regista os voos
                 break;
+            case (byte)4:
+                allFlights();//Recebe uma trip e regista os voos
+                break;
             case (byte)6:
+                sendCities();//Envia a lista de cidades
+                break;
+            case (byte)7:
 
                 break;
+            default:
+                return false;
         }
         return true;
     }
@@ -63,34 +71,37 @@ public class ServerConnection implements Runnable{
         output.flush();
     }
 
+    public void getPossibleBooking(Frame frame){
+        String origin=new String(frame.getData().get(0),StandardCharsets.UTF_8);
+        String destination=new String(frame.getData().get(1),StandardCharsets.UTF_8);
+        LocalDate date=Helpers.localDateFromBytes(frame.getData().get(2));
+
+    }
+
     //Frame que recebe: (byte)Type :(0) (LocalDate)data -> (1) (Trip)viagem
     private void reservation(Frame frame) throws IOException, WrongFrameTypeException{
-        if(frame.getType()!=(byte)3)throw new WrongFrameTypeException();
         List<byte[]>data=frame.getData();
         LocalDate date=LocalDate.parse(new String(data.get(0),StandardCharsets.UTF_8));
         Booking booking =new Booking(new Frame(data.get(1)));
         try{
             dataBase.addBooking(loggedUser, booking,date);
             Frame success=new Frame((byte)0);
-            success.addBlock("SUCCESS".getBytes(StandardCharsets.UTF_8));
+            success.addBlock(booking.getId().getBytes(StandardCharsets.UTF_8));
             output.write(success.serialize());
-            output.flush();
         }catch (FlightNotFoundException e){
             Frame failure=new Frame((byte)0);
             failure.addBlock("NOT FOUND".getBytes(StandardCharsets.UTF_8));
             output.write(failure.serialize());
-            output.flush();
         }catch (FlightFullException e){
             Frame failure=new Frame((byte)0);
             failure.addBlock("FULL".getBytes(StandardCharsets.UTF_8));
             output.write(failure.serialize());
-            output.flush();
         }catch (DayClosedException e){
             Frame failure=new Frame((byte)0);
             failure.addBlock("DAY CLOSED".getBytes(StandardCharsets.UTF_8));
             output.write(failure.serialize());
-            output.flush();
         }
+        output.flush();
     }
 
     private void allFlights() throws WrongFrameTypeException{
@@ -127,12 +138,16 @@ public class ServerConnection implements Runnable{
 
     @Override
     public void run(){
-        while(true) {
-            try {
-                if (!receive()) break;
-            } catch (IOException | WrongFrameTypeException | AccountException e) {
-                e.printStackTrace();
+        boolean run=true;
+        try {
+            while(run) {
+                if (!receive()) run=false;
             }
+            socket.close();
+            output.close();
+            input.close();
+        } catch (IOException | WrongFrameTypeException | AccountException e) {
+            e.printStackTrace();
         }
     }
 }

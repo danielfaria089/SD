@@ -1,11 +1,17 @@
 package client.Model;
 
 import common.Credentials;
+import common.Exceptions.DayClosedException;
+import common.Exceptions.FlightFullException;
+import common.Exceptions.FlightNotFoundException;
+import common.Exceptions.WrongFrameTypeException;
 import common.Frame;
+import common.*;
 
 import java.io.*;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.util.List;
 
 public class ClientConnection {
@@ -19,19 +25,54 @@ public class ClientConnection {
         output=new DataOutputStream(new BufferedOutputStream(clientSocket.getOutputStream()));
     }
 
-    public int login(String username,char[]password) throws IOException {
+    public int login(String username,char[]password) throws IOException,WrongFrameTypeException {
         Credentials credentials=new Credentials(username,password);
         output.write(credentials.createFrame().serialize());
         output.flush();
-        Frame response=new Frame();
-        response.deserialize(input);
+        Frame response=new Frame(input);
         if(response.getType()==0){
-            List<byte[]> dados=response.getData();
-            String resposta=new String(dados.get(0), StandardCharsets.UTF_8);
+            String resposta=new String(response.getData().get(0), StandardCharsets.UTF_8);
             if(resposta.equals("CLIENT"))return 1;
-            else if(response.equals("ADMIN"))return 2;
+            else if(resposta.equals("ADMIN"))return 2;
             else return -1;
         }
-        else return -2;
+        else throw new WrongFrameTypeException();
+    }
+
+    public List<Booking> getPossibleBookings(String origin,String destination){
+
+    }
+
+    public String reservation(LocalDate date, Booking booking) throws IOException, WrongFrameTypeException,DayClosedException,FlightFullException,FlightNotFoundException {
+        Frame frame=new Frame((byte)3);
+        frame.addBlock(Helpers.localDateToBytes(date));
+        frame.addBlock(booking.createFrame().serialize());
+        output.write(frame.serialize());
+        output.flush();
+        Frame response=new Frame(input);
+        if(response.getType()==0){
+            String resposta=new String(response.getData().get(0), StandardCharsets.UTF_8);
+            switch(resposta){
+                case "NOT FOUND":throw new FlightNotFoundException();
+                case "FULL":throw new FlightFullException();
+                case "DAY CLOSED":throw new DayClosedException();
+                default:return booking.getId();
+            }
+        }
+        else throw new WrongFrameTypeException();
+    }
+
+
+
+
+
+    public void close(){
+        try{
+            clientSocket.close();
+            input.close();
+            output.close();
+        }catch(IOException e){
+            e.printStackTrace();
+        }
     }
 }

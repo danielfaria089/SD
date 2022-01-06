@@ -9,8 +9,6 @@ import java.util.stream.Collectors;
 public class Frame {
     private byte type;/*0 -> mensagem basica, 1 -> login, 2 -> flight, 3 -> trip,
                         4 -> allFlights, 5 -> AccountsFlights, 6 -> Cidades
-
-
                         */
     private List<byte[]> data;
 
@@ -34,6 +32,10 @@ public class Frame {
 
     public Frame(byte[]frameBytes) throws IOException{
         this.deserialize(frameBytes);
+    }
+
+    public Frame(DataInputStream inputStream) throws IOException{
+        this.deserialize(inputStream);
     }
 
     public void addBlock(byte[] block){
@@ -73,19 +75,8 @@ public class Frame {
     }
 
     public void deserialize(byte[] input) throws IOException {
-        data=new ArrayList<>();
-
         DataInputStream inputStream=new DataInputStream(new ByteArrayInputStream(input));
-        type=inputStream.readByte();
-        int count=inputStream.readInt();
-        int size;
-        byte[] buffer;
-        for(int i=0;i<count;i++){
-            size=inputStream.readInt();
-            buffer=new byte[size];
-            inputStream.read(buffer,0,size);
-            data.add(buffer);
-        }
+        deserialize(inputStream);
     }
 
     public void deserialize(DataInputStream input) throws IOException {

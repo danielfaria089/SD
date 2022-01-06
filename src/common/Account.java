@@ -14,7 +14,7 @@ public class Account {
     private String username;
     private char[] password;
     private boolean admin;//true=admin  false==client
-    private Map<String, Pair<Flight,LocalDate>> flights;
+    private Map<String,LocalDate> flights;
 
     public Account(String u, char[] p, boolean b){
         this.username = u;
@@ -35,11 +35,11 @@ public class Account {
         return admin;
     }
 
-    public void addFlight(Flight f, LocalDate date){
-        flights.put(f.getId(), new Pair<>(f,date));
+    public void addBooking(String tripID, LocalDate date){
+        flights.put(tripID, date);
     }
 
-    public void removeFlight(String id){
+    public void removeBooking(String id){
         flights.remove(id);
     }
 
@@ -51,13 +51,10 @@ public class Account {
         return ret;
     }
 
-    public void readAccountFlights(List<Frame> frames) throws WrongFrameTypeException{
-        for(Frame frame : frames){
-            if(frame.getType()!=(byte)5) throw new WrongFrameTypeException();
-            List<byte[]> bytes = frame.getData();
-            Flight flight = new Flight();
-            flight.readFrame(frame);
-            flights.put(flight.getId(), new Pair<>(flight,Helpers.localDateFromBytes(bytes.get(1))));
+    public void readAccountFlights(List<Pair<String,LocalDate>> bookings) {
+        flights=new HashMap<>();
+        for(Pair<String,LocalDate> par: bookings){
+            flights.put(par.fst,par.snd);
         }
     }
 }

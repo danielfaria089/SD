@@ -6,6 +6,7 @@ import common.Exceptions.WrongFrameTypeException;
 import server.Flights;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -82,6 +83,7 @@ public class Booking {
 
     public Frame createFrame() throws IOException{
         Frame frame=new Frame((byte)3);
+        frame.addBlock(id.getBytes(StandardCharsets.UTF_8));
         for(Flight flight:stopOvers){
             frame.addBlock(flight.createFrame().serialize());
         }
@@ -92,9 +94,10 @@ public class Booking {
         if(frame.getType()!=(byte)3)throw new WrongFrameTypeException();
         List<byte[]>data=frame.getData();
         stopOvers=new ArrayList<>();
-        for(byte[]block:data){
-            Frame voo=new Frame(block);
-            Flight flight=new Flight(voo);
+        id=new String(data.get(0),StandardCharsets.UTF_8);
+        for(int i=1;i<data.size();i++){
+            byte[]block=data.get(i);
+            Flight flight=new Flight(new Frame(block));
             stopOvers.add(flight);
         }
     }
