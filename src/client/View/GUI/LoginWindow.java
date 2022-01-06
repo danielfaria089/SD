@@ -1,6 +1,7 @@
 package client.View.GUI;
 
 import client.Controller.Controller;
+import common.Exceptions.WrongFrameTypeException;
 
 import javax.swing.*;
 import java.awt.*;
@@ -75,7 +76,7 @@ public class LoginWindow extends Window{
                     username.setText("");
                     password.setText("");
                 }
-            } catch (IOException ioException) {
+            } catch (IOException | WrongFrameTypeException ioException) {
                 popupMessage("Erro interno",ERROR);
             }
         });

@@ -1,5 +1,7 @@
 package client.Model;
 
+import common.Exceptions.WrongFrameTypeException;
+
 import java.io.IOException;
 
 public class Model {
@@ -10,7 +12,7 @@ public class Model {
         this.connection=connection;
     }
 
-    public int login(String username,char[]password) throws IOException {
+    public int login(String username,char[]password) throws IOException, WrongFrameTypeException {
         return connection.login(username,password);
     }
 }

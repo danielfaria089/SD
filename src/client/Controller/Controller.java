@@ -1,6 +1,7 @@
 package client.Controller;
 
 import client.Model.Model;
+import common.Exceptions.WrongFrameTypeException;
 
 import java.io.IOException;
 
@@ -12,7 +13,7 @@ public class Controller {
         this.model=model;
     }
 
-    public int login(String username,char[]password) throws IOException {
+    public int login(String username,char[]password) throws IOException, WrongFrameTypeException {
         return model.login(username,password);
     }
 

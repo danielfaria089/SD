@@ -1,6 +1,5 @@
 package common;
 
-import common.Exceptions.FlightException;
 import common.Exceptions.IncompatibleFlightsException;
 import common.Exceptions.MaxFlightsException;
 import common.Exceptions.WrongFrameTypeException;
@@ -12,23 +11,29 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 //Viagem, guarda voos que representam uma ou mais escalas que o utilizador irá realizar
-public class Trip {
+public class Booking {
 
+    private String id;
     private List<Flight> stopOvers;//Escalas
 
     //Construtor nulo
-    public Trip(){
+    public Booking(){
+        id = Helpers.randomString();
         stopOvers=new ArrayList<>();
     }
 
-    public Trip(Frame frame) throws IOException,WrongFrameTypeException{
+    public Booking(Frame frame) throws IOException,WrongFrameTypeException{
         this.readFrame(frame);
     }
 
     //Construtor com escalas
-    public Trip(List<Flight> stopOvers){
+    public Booking(List<Flight> stopOvers){
         if(stopOvers==null)throw new NullPointerException();
         this.stopOvers=stopOvers.stream().map(Flight::clone).collect(Collectors.toList());
+    }
+
+    public String getId() {
+        return id;
     }
 
     //Devolve origem
@@ -61,15 +66,15 @@ public class Trip {
     }
 
     //Comparador de Trip
-    public int compare(Trip trip){
-        if(stopOvers==null && trip.stopOvers!=null)return -1;
+    public int compare(Booking booking){
+        if(stopOvers==null && booking.stopOvers!=null)return -1;
         if(stopOvers==null)return 0;
-        if(trip.stopOvers==null)return 1;
+        if(booking.stopOvers==null)return 1;
         Flight flight1;
         Flight flight2;
         for(int i=0;i<Flights.MAX_FLIGHTS;i++){
             flight1=stopOvers.get(i);
-            flight2=trip.stopOvers.get(i);
+            flight2= booking.stopOvers.get(i);
             if(flight1.compareFlight(flight2)!=0)return flight1.compareFlight(flight2);
         }
         return 0;

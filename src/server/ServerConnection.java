@@ -68,9 +68,9 @@ public class ServerConnection implements Runnable{
         if(frame.getType()!=(byte)3)throw new WrongFrameTypeException();
         List<byte[]>data=frame.getData();
         LocalDate date=LocalDate.parse(new String(data.get(0),StandardCharsets.UTF_8));
-        Trip trip=new Trip(new Frame(data.get(1)));
+        Booking booking =new Booking(new Frame(data.get(1)));
         try{
-            dataBase.addTrip(loggedUser,trip,date);
+            dataBase.addBooking(loggedUser, booking,date);
             Frame success=new Frame((byte)0);
             success.addBlock("SUCCESS".getBytes(StandardCharsets.UTF_8));
             output.write(success.serialize());
@@ -90,6 +90,28 @@ public class ServerConnection implements Runnable{
             failure.addBlock("DAY CLOSED".getBytes(StandardCharsets.UTF_8));
             output.write(failure.serialize());
             output.flush();
+        }
+    }
+
+    private void allFlights() throws WrongFrameTypeException{
+        try{
+            Frame frame=new Frame((byte)4);
+            List<Frame> frames = dataBase.createFlightsFrame();
+            for(Frame f : frames){
+                frame.addBlock(f.serialize());
+            }
+            output.write(frame.serialize());
+            output.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void allBookings(){
+        try {
+            Frame frame = new Frame((byte)5);
+            Account acc = new Account(loggedUser);
+
         }
     }
 

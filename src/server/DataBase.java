@@ -4,7 +4,7 @@ import common.Account;
 import common.Exceptions.*;
 import common.Flight;
 import common.Frame;
-import common.Trip;
+import common.Booking;
 
 import java.io.*;
 import java.time.LocalDate;
@@ -41,14 +41,12 @@ public class DataBase {
     }
 
     //Adicionar todos os voos de uma trip
-    public void addTrip(String id, Trip trip,LocalDate date) throws FlightFullException, FlightNotFoundException, DayClosedException {
+    public void addBooking(String id, Booking booking, LocalDate date) throws FlightFullException, FlightNotFoundException, DayClosedException {
         if(!bookings.containsKey(date))bookings.put(date,new Flights(defaultFlights,adjencencies));
         Flights flights=bookings.get(date);
-        flights.addTrip(trip,id);
-        for(Flight flight:trip.getStopOvers()){
-            Account client = accounts.get(id);
-            client.addFlight(flight,date);
-        }
+        flights.addBooking(booking,id);
+        Account client=accounts.get(id);
+        client.addBooking(booking.getId(),date);
     }
 
     //Adicionar voo aos voos padrão

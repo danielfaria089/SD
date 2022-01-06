@@ -2,9 +2,8 @@ package server;
 
 import common.Exceptions.*;
 import common.Flight;
-import common.Trip;
+import common.Booking;
 
-import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -25,10 +24,10 @@ public class Flights {
     }
 
     //Adiciona uma viagem ao dia
-    public void addTrip(Trip trip,String id) throws FlightFullException, FlightNotFoundException, DayClosedException {
+    public void addBooking(Booking booking, String id) throws FlightFullException, FlightNotFoundException, DayClosedException {
         if(closed)throw new DayClosedException();
         boolean found;
-        for(Flight flight1:trip.getStopOvers()){
+        for(Flight flight1: booking.getStopOvers()){
             found=false;
             for(Flight flight2:flights){
                 if(flight1.compareFlight(flight2)==0) {
@@ -46,27 +45,27 @@ public class Flights {
     }
 
     //Devolve viagens possiveis entre origem e destino
-    public Set<Trip> getFlights(String origin,String destination) throws IncompatibleFlightsException, MaxFlightsException {
-        Set<Trip> trips= new TreeSet<>(Trip::compare);
+    public Set<Booking> getFlights(String origin, String destination) throws IncompatibleFlightsException, MaxFlightsException {
+        Set<Booking> bookings = new TreeSet<>(Booking::compare);
         List<List<String>> ways=new ArrayList<>();
         List<String> current=new ArrayList<>();
         current.add(origin);
         depthFirst(origin,destination,ways,current);
         for(List<String>strings:ways){
-            Trip trip=new Trip();
+            Booking booking =new Booking();
             for(int i=0;i< strings.size()-1;i++){
                 String o=strings.get(i);
                 String d=strings.get(i+1);
                 for(Flight flight:flights){
                     if(flight.equals(o,d)) {
-                        trip.addFlight(flight);
+                        booking.addFlight(flight);
                         break;
                     }
                 }
             }
-            trips.add(trip);
+            bookings.add(booking);
         }
-        return trips;
+        return bookings;
     }
 
     //depthFirst search

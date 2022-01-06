@@ -7,10 +7,7 @@ import server.Flights;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class Account {
 
@@ -46,15 +43,12 @@ public class Account {
         flights.remove(id);
     }
 
-    public List<Frame> createAccountFlights() throws IOException {
-        List<Frame> frames = new ArrayList<>();
-        for(Pair<Flight,LocalDate> pair : flights.values()){
-            Frame frame = new Frame((byte) 5);
-            frame.addBlock(pair.fst.createFrame().serialize());
-            frame.addBlock(pair.snd.toString().getBytes(StandardCharsets.UTF_8));
-            frames.add(frame);
+    public List<Pair<String,LocalDate>> getBookingsIds() throws IOException {
+        List<Pair<String,LocalDate>> ret = new ArrayList<>();
+        for(Map.Entry<String,LocalDate> p : flights.entrySet()){
+            ret.add(new Pair<>(p.getKey(),p.getValue()));
         }
-        return frames;
+        return ret;
     }
 
     public void readAccountFlights(List<Frame> frames) throws WrongFrameTypeException{
