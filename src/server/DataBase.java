@@ -21,9 +21,8 @@ public class DataBase {
 
     //Construtor da base de dados
     public DataBase(){
-        defaultFlights=null;
-        adjencencies=null;
-        //adjencencies=lerFicheiroDeAdjacencias
+        defaultFlights=new TreeSet<>(Flight::compareFlight);
+        adjencencies=new HashMap<>();
         bookings=new HashMap<>();
         accounts=new HashMap<>();
     }

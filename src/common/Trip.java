@@ -1,5 +1,8 @@
 package common;
 
+import common.Exceptions.FlightException;
+import common.Exceptions.IncompatibleFlightsException;
+import common.Exceptions.MaxFlightsException;
 import common.Exceptions.WrongFrameTypeException;
 import server.Flights;
 
@@ -43,11 +46,11 @@ public class Trip {
     }
 
     //Adiciona um flight
-    public void addFlight(Flight flight) throws IOException {
+    public void addFlight(Flight flight) throws IncompatibleFlightsException, MaxFlightsException {
         if(stopOvers==null)throw new NullPointerException();
-        if(stopOvers.size()>=Flights.MAX_FLIGHTS)throw new IndexOutOfBoundsException();//Criar excpetion para isto
+        if(stopOvers.size()>=Flights.MAX_FLIGHTS)throw new MaxFlightsException();//Criar excpetion para isto
         else{
-            if(!this.getDestination().equals(flight.getOrigin()))throw new IOException();//criat tbm
+            if(!this.getDestination().equals(flight.getOrigin()))throw new IncompatibleFlightsException();//criat tbm
             else stopOvers.add(flight);
         }
     }

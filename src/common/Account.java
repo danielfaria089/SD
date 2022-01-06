@@ -59,7 +59,7 @@ public class Account {
 
     public void readAccountFlights(List<Frame> frames) throws WrongFrameTypeException{
         for(Frame frame : frames){
-            if(frame.getType()!='5') throw new WrongFrameTypeException();
+            if(frame.getType()!=(byte)5) throw new WrongFrameTypeException();
             List<byte[]> bytes = frame.getData();
             Flight flight = new Flight();
             flight.readFrame(frame);

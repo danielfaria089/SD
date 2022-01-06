@@ -54,14 +54,13 @@ public class ServerConnection implements Runnable{
             }
             else success.addBlock("CLIENT".getBytes(StandardCharsets.UTF_8));
             output.write(success.serialize());
-            output.flush();
         }
         else{
             Frame failure=new Frame((byte)0);
             failure.addBlock("ERROR".getBytes(StandardCharsets.UTF_8));
             output.write(failure.serialize());
-            output.flush();
         }
+        output.flush();
     }
 
     //Frame que recebe: (byte)Type :(0) (LocalDate)data -> (1) (Trip)viagem
@@ -78,7 +77,7 @@ public class ServerConnection implements Runnable{
             output.flush();
         }catch (FlightNotFoundException e){
             Frame failure=new Frame((byte)0);
-            failure.addBlock("NOTFOUND".getBytes(StandardCharsets.UTF_8));
+            failure.addBlock("NOT FOUND".getBytes(StandardCharsets.UTF_8));
             output.write(failure.serialize());
             output.flush();
         }catch (FlightFullException e){

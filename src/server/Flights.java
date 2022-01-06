@@ -1,8 +1,6 @@
 package server;
 
-import common.Exceptions.DayClosedException;
-import common.Exceptions.FlightFullException;
-import common.Exceptions.FlightNotFoundException;
+import common.Exceptions.*;
 import common.Flight;
 import common.Trip;
 
@@ -48,7 +46,7 @@ public class Flights {
     }
 
     //Devolve viagens possiveis entre origem e destino
-    public Set<Trip> getFlights(String origin,String destination) throws IOException {
+    public Set<Trip> getFlights(String origin,String destination) throws IncompatibleFlightsException, MaxFlightsException {
         Set<Trip> trips= new TreeSet<>(Trip::compare);
         List<List<String>> ways=new ArrayList<>();
         List<String> current=new ArrayList<>();
