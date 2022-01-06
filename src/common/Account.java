@@ -14,13 +14,13 @@ public class Account {
     private String username;
     private char[] password;
     private boolean admin;//true=admin  false==client
-    private Map<String,LocalDate> flights;
+    private Set<String> flights;
 
     public Account(String u, char[] p, boolean b){
         this.username = u;
         this.password = p.clone();
         this.admin = b;
-        this.flights = new HashMap<>();
+        this.flights = new TreeSet<>();
     }
 
     public String getUsername() {
@@ -35,26 +35,15 @@ public class Account {
         return admin;
     }
 
-    public void addBooking(String tripID, LocalDate date){
-        flights.put(tripID, date);
+    public void addBooking(String bookingID){
+        flights.add(bookingID);
     }
 
     public void removeBooking(String id){
         flights.remove(id);
     }
 
-    public List<Pair<String,LocalDate>> getBookingsIds() throws IOException {
-        List<Pair<String,LocalDate>> ret = new ArrayList<>();
-        for(Map.Entry<String,LocalDate> p : flights.entrySet()){
-            ret.add(new Pair<>(p.getKey(),p.getValue()));
-        }
-        return ret;
-    }
-
-    public void readAccountFlights(List<Pair<String,LocalDate>> bookings) {
-        flights=new HashMap<>();
-        for(Pair<String,LocalDate> par: bookings){
-            flights.put(par.fst,par.snd);
-        }
+    public Set<String> getBookingsIds(){
+        return new TreeSet<>(flights);
     }
 }

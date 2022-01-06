@@ -39,14 +39,12 @@ public class ClientConnection {
         else throw new WrongFrameTypeException();
     }
 
-    public List<Booking> getPossibleBookings(String origin,String destination){
+    
 
-    }
-
-    public String reservation(LocalDate date, Booking booking) throws IOException, WrongFrameTypeException,DayClosedException,FlightFullException,FlightNotFoundException {
+    public String reservation(LocalDate date,StopOvers stopOvers) throws IOException, WrongFrameTypeException,DayClosedException,FlightFullException,FlightNotFoundException {
         Frame frame=new Frame((byte)3);
         frame.addBlock(Helpers.localDateToBytes(date));
-        frame.addBlock(booking.createFrame().serialize());
+        frame.addBlock(stopOvers.createFrame().serialize());
         output.write(frame.serialize());
         output.flush();
         Frame response=new Frame(input);
@@ -56,7 +54,7 @@ public class ClientConnection {
                 case "NOT FOUND":throw new FlightNotFoundException();
                 case "FULL":throw new FlightFullException();
                 case "DAY CLOSED":throw new DayClosedException();
-                default:return booking.getId();
+                default:return resposta;
             }
         }
         else throw new WrongFrameTypeException();

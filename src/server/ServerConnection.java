@@ -27,7 +27,7 @@ public class ServerConnection implements Runnable{
         output=new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
     }
 
-    public boolean receive() throws IOException, WrongFrameTypeException, AccountException {
+    public boolean receive() throws IOException, WrongFrameTypeException, AccountException, IncompatibleFlightsException, MaxFlightsException {
         Frame frame=new Frame();
         frame.deserialize(input);
         switch (frame.getType()){
@@ -79,14 +79,15 @@ public class ServerConnection implements Runnable{
     }
 
     //Frame que recebe: (byte)Type :(0) (LocalDate)data -> (1) (Trip)viagem
-    private void reservation(Frame frame) throws IOException, WrongFrameTypeException{
+    private void reservation(Frame frame) throws IOException, IncompatibleFlightsException, MaxFlightsException, WrongFrameTypeException {
         List<byte[]>data=frame.getData();
         LocalDate date=LocalDate.parse(new String(data.get(0),StandardCharsets.UTF_8));
-        Booking booking =new Booking(new Frame(data.get(1)));
+        StopOvers stopOvers =new StopOvers(new Frame(data.get(1)));
+        Booking booking=new Booking(loggedUser,date,stopOvers.getStopOvers());
         try{
-            dataBase.addBooking(loggedUser, booking,date);
+            dataBase.addBooking(booking);
             Frame success=new Frame((byte)0);
-            success.addBlock(booking.getId().getBytes(StandardCharsets.UTF_8));
+            success.addBlock(booking.getBookingID().getBytes(StandardCharsets.UTF_8));
             output.write(success.serialize());
         }catch (FlightNotFoundException e){
             Frame failure=new Frame((byte)0);
@@ -117,15 +118,16 @@ public class ServerConnection implements Runnable{
             e.printStackTrace();
         }
     }
-
+    /*
     private void allBookings(){
         try {
             Frame frame = new Frame((byte)5);
-            Account acc = new Account(loggedUser);
+
 
         }
     }
 
+    */
     public void sendCities()throws IOException{
         Frame frame=new Frame((byte)6);
         Set<String>cities=dataBase.getAllCities();
@@ -146,7 +148,7 @@ public class ServerConnection implements Runnable{
             socket.close();
             output.close();
             input.close();
-        } catch (IOException | WrongFrameTypeException | AccountException e) {
+        } catch (IOException | WrongFrameTypeException | AccountException | IncompatibleFlightsException | MaxFlightsException e) {
             e.printStackTrace();
         }
     }

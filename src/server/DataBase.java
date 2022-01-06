@@ -1,31 +1,31 @@
 package server;
 
-import client.Model.ClientConnection;
 import common.Account;
 import common.Exceptions.*;
 import common.Flight;
-import common.Frame;
 import common.Booking;
+import common.Frame;
 
 import java.io.*;
-import java.time.LocalDate;
 import java.util.*;
 
 public class DataBase {
 
+    private static final String FLIGHTS_FILE="Flights.txt";
 
-    private Set<Flight> defaultFlights;
-    private Map<String, Set<String>> adjencencies;
-
-    private Map<LocalDate,Flights> bookings;
+    private ColBookings bookings;
+    private FlightCalculator calculator;
     private Map<String, Account> accounts;
 
     //Construtor da base de dados
     public DataBase(){
-        defaultFlights=new TreeSet<>(Flight::compareFlight);
-        adjencencies=new HashMap<>();
-        bookings=new HashMap<>();
-        accounts=new HashMap<>();
+        try{
+            calculator=new FlightCalculator(FLIGHTS_FILE);
+            bookings=new ColBookings(calculator);
+            accounts=new HashMap<>();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void addClient(String username,char[]password) throws AccountException {
@@ -42,24 +42,13 @@ public class DataBase {
     }
 
     //Adicionar todos os voos de uma trip
-    public void addBooking(String id, Booking booking, LocalDate date) throws FlightFullException, FlightNotFoundException, DayClosedException {
-        if(!bookings.containsKey(date))bookings.put(date,new Flights(defaultFlights,adjencencies));
-        Flights flights=bookings.get(date);
-        flights.addBooking(booking,id);
-        Account client=accounts.get(id);
-        client.addBooking(booking.getId(),date);
+    public void addBooking(Booking booking) throws FlightFullException, FlightNotFoundException, DayClosedException {
+        bookings.addBooking(booking);
     }
 
     //Adicionar voo aos voos padrão
     public void addDefaultFlight(Flight flight) throws FlightException {
-        for(Flight flight2:defaultFlights){
-            if(flight.compareFlight(flight2)==0)throw new FlightException("Already exists");
-        }
-        defaultFlights.add(flight);
-        addAdjencency(flight.getOrigin(), flight.getDestination());
-        for(Flights flights:bookings.values()){
-            flights.addDefaultFlight(flight);
-        }
+
     }
 
     public boolean checkLogIn(String id, char[] pass){
@@ -71,47 +60,14 @@ public class DataBase {
         return accounts.get(id).isAdmin();
     }
 
-    private void addAdjencency(String origem,String destino){
-        if(!adjencencies.containsKey(origem))adjencencies.put(origem,new TreeSet<>());
-        adjencencies.get(origem).add(destino);
-    }
-
-    private void readFlights(String filename) throws IOException{
-        BufferedReader reader = new BufferedReader((new FileReader(filename)));
-        String line;
-        while ((line = reader.readLine())!=null){
-            String[] strings = line.split(";");
-            Flight f = new Flight(strings[0],strings[1],strings[2],Integer.parseInt(strings[3]));
-            addAdjencency(f.getOrigin(),f.getDestination());
-            defaultFlights.add(f);
-        }
-    }
-
-    private void writeFlights(String filename) throws IOException {
-        PrintWriter writer = new PrintWriter((new FileWriter(filename)));
-        for(Flight f : defaultFlights){
-            writer.println(f.getId() + ";" +
-                    f.getOrigin() + ";" +
-                    f.getDestination() + ";" +
-                    f.getCapacity());
-        }
-        writer.flush();
-        writer.close();
-    }
-
     public Set<String> getAllCities(){
-        return adjencencies.keySet();
+        return calculator.getAllCities();
     }
 
     public List<Frame> createFlightsFrame() throws IOException {
-        List<Frame> frames = new ArrayList<>();
-        for(Flight f : defaultFlights){
-            Frame frame = new Frame((byte) 2);
-            frame.addBlock(f.createFrame().serialize());
-            frames.add(frame);
-        }
-        return frames;
+        return calculator.createFlightsFrame();
     }
+
 }
 
 /*
