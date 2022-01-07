@@ -5,7 +5,6 @@ import common.Booking;
 import common.Exceptions.DayClosedException;
 import common.Exceptions.FlightFullException;
 import common.Exceptions.FlightNotFoundException;
-import common.StopOvers;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -40,5 +39,14 @@ public class ColBookings {
             bookings.add(reservations.get(bookingID));
         }
         return bookings;
+    }
+
+    public void clearOldFlights(){
+        for(LocalDate day: flightsMap.keySet()){
+            if(day.isBefore(LocalDate.now().minusDays(1)))flightsMap.remove(day);//Minus para nao eliminar voos que ainda nao ocorreram em outras timezones
+        }
+        for(Booking booking: reservations.values()){
+            if(booking.getDate().isBefore(LocalDate.now().minusDays(1)))reservations.remove(booking.getBookingID());
+        }
     }
 }

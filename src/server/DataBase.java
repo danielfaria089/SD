@@ -4,7 +4,6 @@ import common.Account;
 import common.Exceptions.*;
 import common.Flight;
 import common.Booking;
-import common.Frame;
 
 import java.io.*;
 import java.util.*;
@@ -64,8 +63,12 @@ public class DataBase {
         return calculator.getAllCities();
     }
 
-    public List<Frame> createFlightsFrame() throws IOException {
-        return calculator.createFlightsFrame();
+    public Set<Flight> getDefaultFlights() throws IOException {
+        return calculator.getDefaultFlights();
+    }
+
+    public void clearOldFlights(){
+        bookings.clearOldFlights();
     }
 
 }

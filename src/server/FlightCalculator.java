@@ -2,7 +2,6 @@ package server;
 
 import common.Exceptions.FlightException;
 import common.Flight;
-import common.Frame;
 
 import java.io.*;
 import java.util.*;
@@ -50,16 +49,6 @@ public class FlightCalculator {
 
     public Set<Flight> getDefaultFlights(){
         return defaultFlights.values().stream().map(Flight::clone).collect(Collectors.toSet());
-    }
-
-    public List<Frame> createFlightsFrame() throws IOException {
-        List<Frame> frames = new ArrayList<>();
-        for(Flight f : defaultFlights.values()){
-            Frame frame = new Frame(Frame.FLIGHT);
-            frame.addBlock(f.createFrame().serialize());
-            frames.add(frame);
-        }
-        return frames;
     }
 
     public void addDefaultFlight(Flight flight) throws FlightException {

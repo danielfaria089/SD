@@ -18,6 +18,7 @@ public class Booking {
     public Booking(String clientID,LocalDate date){
         bookingID = Helpers.randomString();
         this.clientID=clientID;
+        this.date=date;
         stopOvers=new StopOvers();
     }
 

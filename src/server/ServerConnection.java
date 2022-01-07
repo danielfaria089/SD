@@ -56,7 +56,7 @@ public class ServerConnection implements Runnable{
         Credentials credentials=new Credentials(frame);
         if(dataBase.checkLogIn(credentials.getUsername(), credentials.getPassword())){
             loggedUser=credentials.getUsername();
-            Frame success=new Frame((byte)0);
+            Frame success=new Frame(Frame.BASIC);
             if(dataBase.checkAdmin(loggedUser)){
                 success.addBlock("ADMIN".getBytes(StandardCharsets.UTF_8));
             }
@@ -64,7 +64,7 @@ public class ServerConnection implements Runnable{
             output.write(success.serialize());
         }
         else{
-            Frame failure=new Frame((byte)0);
+            Frame failure=new Frame(Frame.BASIC);
             failure.addBlock("ERROR".getBytes(StandardCharsets.UTF_8));
             output.write(failure.serialize());
         }
@@ -86,31 +86,31 @@ public class ServerConnection implements Runnable{
         Booking booking=new Booking(loggedUser,date,stopOvers.getStopOvers());
         try{
             dataBase.addBooking(booking);
-            Frame success=new Frame((byte)0);
+            Frame success=new Frame(Frame.BASIC);
             success.addBlock(booking.getBookingID().getBytes(StandardCharsets.UTF_8));
             output.write(success.serialize());
         }catch (FlightNotFoundException e){
-            Frame failure=new Frame((byte)0);
+            Frame failure=new Frame(Frame.BASIC);
             failure.addBlock("NOT FOUND".getBytes(StandardCharsets.UTF_8));
             output.write(failure.serialize());
         }catch (FlightFullException e){
-            Frame failure=new Frame((byte)0);
+            Frame failure=new Frame(Frame.BASIC);
             failure.addBlock("FULL".getBytes(StandardCharsets.UTF_8));
             output.write(failure.serialize());
         }catch (DayClosedException e){
-            Frame failure=new Frame((byte)0);
+            Frame failure=new Frame(Frame.BASIC);
             failure.addBlock("DAY CLOSED".getBytes(StandardCharsets.UTF_8));
             output.write(failure.serialize());
         }
         output.flush();
     }
 
-    private void allFlights() throws WrongFrameTypeException{
+    private void allFlights(){
         try{
-            Frame frame=new Frame((byte)4);
-            List<Frame> frames = dataBase.createFlightsFrame();
-            for(Frame f : frames){
-                frame.addBlock(f.serialize());
+            Frame frame=new Frame(Frame.ALL_FLIGHTS);
+            Set<Flight> flights = dataBase.getDefaultFlights();
+            for(Flight f : flights){
+                frame.addBlock(f.createFrame().serialize());
             }
             output.write(frame.serialize());
             output.flush();
@@ -118,18 +118,9 @@ public class ServerConnection implements Runnable{
             e.printStackTrace();
         }
     }
-    /*
-    private void allBookings(){
-        try {
-            Frame frame = new Frame((byte)5);
 
-
-        }
-    }
-
-    */
     public void sendCities()throws IOException{
-        Frame frame=new Frame((byte)6);
+        Frame frame=new Frame(Frame.CITIES);
         Set<String>cities=dataBase.getAllCities();
         for(String city:cities){
             frame.addBlock(city.getBytes(StandardCharsets.UTF_8));
