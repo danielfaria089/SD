@@ -72,12 +72,16 @@ public class Flight {
         else throw new FlightFullException();
     }
 
-    public void removeClient(Account c){
+    public void removePassenger(Account c){
         accountIds.remove(c.getUsername());
     }
 
-    public void removeClient(String id){
+    public void removePassenger(String id){
         accountIds.remove(id);
+    }
+
+    public void removeAllPassengers(){
+        this.accountIds=new TreeSet<>();
     }
 
     public List<String> getClients(){

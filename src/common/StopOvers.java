@@ -27,6 +27,10 @@ public class StopOvers {
         }
     }
 
+    public StopOvers(StopOvers stopOvers){
+        this.stopOvers=stopOvers.getStopOvers();
+    }
+
     public StopOvers(Frame frame) throws IOException, WrongFrameTypeException {
         readFrame(frame);
     }

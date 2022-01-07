@@ -7,7 +7,11 @@ import common.Booking;
 import common.StopOvers;
 
 import java.io.*;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class DataBase {
 
@@ -17,7 +21,7 @@ public class DataBase {
     private FlightCalculator calculator;
     private Map<String, Account> accounts;
 
-    //Construtor da base de dados
+    //Construtors
     public DataBase(){
         try{
             calculator=new FlightCalculator(FLIGHTS_FILE);
@@ -27,6 +31,8 @@ public class DataBase {
             e.printStackTrace();
         }
     }
+
+    //FUNCIONALIDADE 1:DONE
 
     public void addClient(String username,char[]password) throws AccountException {
         if(accounts.containsKey(username))throw new AccountException();
@@ -41,34 +47,62 @@ public class DataBase {
         }
     }
 
-    //Adicionar todos os voos de uma trip
-    public void addBooking(Booking booking) throws FlightFullException, FlightNotFoundException, DayClosedException {
-        bookings.addBooking(booking);
-    }
-
-    //Adicionar voo aos voos padrão
-    public void addDefaultFlight(Flight flight) throws FlightException {
-        bookings.addDefaultFlight(flight);
-    }
-
     public boolean checkLogIn(String id, char[] pass){
         return Arrays.equals(accounts.get(id).getPassword(), pass);
     }
+
+    //FUNCIONALIDADE 2:DONE
 
     public boolean checkAdmin(String id) throws AccountException {
         if(!accounts.containsKey(id))throw new AccountException();
         return accounts.get(id).isAdmin();
     }
 
-    
+    //FUNCIONALIDADE 3:DONE
+
+    public void addDefaultFlight(Flight flight) throws FlightException {
+        bookings.addDefaultFlight(flight);
+    }
+
+    //FUNCIONALIDADE 4:É preciso ainda enviar as notificações
+
+    public void cancelDay(LocalDate date){
+        Set<Booking> cancelledBookings= bookings.cancelDay(date);
+        //falta notificar usando os bookings
+    }
+
+    //FUNCIONALIDADE 5 mix ADICIONAL 2:
 
     public Set<String> getAllCities(){
         return calculator.getAllCities();
     }
 
+    public Set<Booking> possibleBookings(String origin, String destination, LocalDate start, LocalDate end){
+        if(start.isAfter(end))return null;
+        List<LocalDate> dates = Stream.iterate(start, date -> date.plusDays(1))
+                            .limit(ChronoUnit.DAYS.between(start, end))
+                            .collect(Collectors.toList());
+        return bookings.getPossibleBookings(origin,destination,dates);
+    }
+
+    public void addBooking(Booking booking) throws FlightFullException, FlightNotFoundException, DayClosedException {
+        bookings.addBooking(booking);
+    }
+
+    //FUNCIONALIDADE 6:
+
+    public void cancelBooking(String bookingID,String clientID) throws BookingNotFound, DayClosedException, AccountException {
+        bookings.cancelBooking(bookingID,clientID);
+    }
+
+    //FUNCIONALIDADE 7:
+
+
     public Set<Flight> getDefaultFlights() throws IOException {
         return calculator.getDefaultFlights();
     }
+
+    //OTHERS
 
     public void clearOldFlights(){
         bookings.clearOldFlights();

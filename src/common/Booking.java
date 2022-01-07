@@ -3,6 +3,7 @@ package common;
 import common.Exceptions.IncompatibleFlightsException;
 import common.Exceptions.MaxFlightsException;
 
+import javax.security.sasl.SaslServer;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
@@ -14,6 +15,13 @@ public class Booking {
     private String clientID;
     private LocalDate date;
     private StopOvers stopOvers;//Escalas
+
+    public Booking(LocalDate date,List<Flight> stopOvers) throws IncompatibleFlightsException, MaxFlightsException {
+        this.clientID="";
+        this.date=date;
+        bookingID = Helpers.randomString();
+        this.stopOvers=new StopOvers(stopOvers);
+    }
 
     public Booking(String clientID,LocalDate date){
         bookingID = Helpers.randomString();
@@ -29,6 +37,13 @@ public class Booking {
         this.date=date;
         if(stopOvers==null)this.stopOvers=new StopOvers();
         else this.stopOvers=new StopOvers(stopOvers);
+    }
+
+    public Booking(Booking booking){
+        this.bookingID=booking.bookingID;
+        this.clientID=booking.clientID;
+        this.date=booking.getDate();
+        this.stopOvers=booking.getStopOvers();
     }
 
     public String getClientID(){
@@ -51,4 +66,11 @@ public class Booking {
         return bookingID.compareTo(booking.getBookingID());
     }
 
+    public StopOvers getStopOvers(){
+        return new StopOvers(stopOvers);
+    }
+
+    public Booking clone(){
+        return new Booking(this);
+    }
 }

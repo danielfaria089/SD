@@ -15,12 +15,14 @@ public class Account {
     private char[] password;
     private boolean admin;//true=admin  false==client
     private Set<String> flights;
+    private Set<String> notifications;
 
     public Account(String u, char[] p, boolean b){
         this.username = u;
         this.password = p.clone();
         this.admin = b;
         this.flights = new TreeSet<>();
+        this.notifications=new TreeSet<>();
     }
 
     public String getUsername() {

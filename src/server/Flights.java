@@ -29,19 +29,39 @@ public class Flights {
         if(closed)throw new DayClosedException();
         String clientID=booking.getClientID();
         for(String flightID: booking.getFlightIDs()){
-            try{
-                flights.get(flightID).addPassenger(clientID);
-            }catch (NullPointerException e){
-                throw new FlightNotFoundException(e.getMessage());
-            }
+            Flight f=flights.get(flightID);
+            if(f==null)throw new FlightNotFoundException();
+            if(!f.checkOccupation())throw new FlightFullException();
+        }
+        for(String flightID: booking.getFlightIDs()){
+            flights.get(flightID).addPassenger(clientID);
         }
     }
 
     public void cancelBooking(Booking booking){
         String clientID= booking.getClientID();
         for(String flightID: booking.getFlightIDs()){
-            flights.get(flightID).removeClient(clientID);
+            flights.get(flightID).removePassenger(clientID);
         }
+    }
+
+    public boolean isClosed(){
+        return closed;
+    }
+
+    public void cancelDay(){
+        for(Flight f:flights.values()){
+            f.removeAllPassengers();
+        }
+        closed=false;
+    }
+
+    public boolean contains(String id){
+        return flights.containsKey(id);
+    }
+
+    public boolean contains(Flight flight){
+        return flights.containsKey(flight.getId());
     }
 
     //Adiciona um voo default

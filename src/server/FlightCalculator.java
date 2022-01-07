@@ -59,22 +59,25 @@ public class FlightCalculator {
         if(defaultFlights.containsKey(flight.getId()))throw new FlightException();
     }
 
-    public Set<StopOvers> getFlights(String origin, String destination) throws FlightNotFoundException, IncompatibleFlightsException, MaxFlightsException {
+    public Set<StopOvers> getFlights(String origin, String destination){
         Set<StopOvers> stopOversSet= new TreeSet<>(StopOvers::compare);
         List<List<String>> ways=new ArrayList<>();
         List<String> current=new ArrayList<>();
         current.add(origin);
-        //depthFirst(origin,destination,ways,current);
+        depthFirst(origin,destination,ways,current);
         for(List<String>strings:ways){
             StopOvers stopOvers=new StopOvers();
-            for(int i=0;i< strings.size()-1;i++){
-                String o=strings.get(i);
-                String d=strings.get(i+1);
-                Flight f=getFlight(o,d);
-                if(f==null)throw new FlightNotFoundException();
-                stopOvers.addFlight(f);
+            try{
+                for(int i=0;i< strings.size()-1;i++){
+                    String o=strings.get(i);
+                    String d=strings.get(i+1);
+                    Flight f=getFlight(o,d);
+                    if(f!=null)stopOvers.addFlight(f);
+                }
+                stopOversSet.add(stopOvers);
+            } catch (IncompatibleFlightsException | MaxFlightsException e) {
+                e.printStackTrace();
             }
-            stopOversSet.add(stopOvers);
         }
         return stopOversSet;
     }
