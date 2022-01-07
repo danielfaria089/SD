@@ -12,7 +12,6 @@ import java.io.*;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
-import java.util.List;
 
 public class ClientConnection {
     private Socket clientSocket;
@@ -30,7 +29,7 @@ public class ClientConnection {
         output.write(credentials.createFrame().serialize());
         output.flush();
         Frame response=new Frame(input);
-        if(response.getType()==0){
+        if(response.getType()==Frame.BASIC){
             String resposta=new String(response.getData().get(0), StandardCharsets.UTF_8);
             if(resposta.equals("CLIENT"))return 1;
             else if(resposta.equals("ADMIN"))return 2;
@@ -39,10 +38,8 @@ public class ClientConnection {
         else throw new WrongFrameTypeException();
     }
 
-    
-
     public String reservation(LocalDate date,StopOvers stopOvers) throws IOException, WrongFrameTypeException,DayClosedException,FlightFullException,FlightNotFoundException {
-        Frame frame=new Frame((byte)3);
+        Frame frame=new Frame(Frame.BOOKING);
         frame.addBlock(Helpers.localDateToBytes(date));
         frame.addBlock(stopOvers.createFrame().serialize());
         output.write(frame.serialize());
@@ -59,10 +56,6 @@ public class ClientConnection {
         }
         else throw new WrongFrameTypeException();
     }
-
-
-
-
 
     public void close(){
         try{

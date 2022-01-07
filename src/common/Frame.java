@@ -7,6 +7,16 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class Frame {
+    public static final byte BASIC=(byte)0;
+    public static final byte LOGIN=(byte)1;
+    public static final byte FLIGHT=(byte)2;
+    public static final byte BOOKING=(byte)3;
+    public static final byte ALL_FLIGHTS=(byte)4;
+    public static final byte ACCOUNT_FLIGHTS=(byte)5;
+    public static final byte CITIES=(byte)6;
+    public static final byte STOPOVERS=(byte)7;
+
+
     private byte type;/*0 -> mensagem basica, 1 -> login, 2 -> flight, 3 -> trip,
                         4 -> allFlights, 5 -> AccountsFlights, 6 -> Cidades
                         */

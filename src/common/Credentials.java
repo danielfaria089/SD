@@ -22,14 +22,14 @@ public class Credentials {
     }
 
     public Frame createFrame(){
-        Frame frame=new Frame((byte) 1);
+        Frame frame=new Frame(Frame.LOGIN);
         frame.addBlock(username.getBytes(StandardCharsets.UTF_8));
         frame.addBlock(Helpers.charToBytes(password));
         return frame;
     }
 
     public void readFrame(Frame frame) throws WrongFrameTypeException{
-        if(frame.getType()!=(byte)1)throw new WrongFrameTypeException();
+        if(frame.getType()!=Frame.LOGIN)throw new WrongFrameTypeException();
         List<byte[]> data=frame.getData();
         username=new String(data.get(0),StandardCharsets.UTF_8);
         password=Helpers.bytesToChar(data.get(1));

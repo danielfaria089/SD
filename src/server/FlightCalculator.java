@@ -1,5 +1,6 @@
 package server;
 
+import common.Exceptions.FlightException;
 import common.Flight;
 import common.Frame;
 
@@ -54,10 +55,14 @@ public class FlightCalculator {
     public List<Frame> createFlightsFrame() throws IOException {
         List<Frame> frames = new ArrayList<>();
         for(Flight f : defaultFlights.values()){
-            Frame frame = new Frame((byte) 2);
+            Frame frame = new Frame(Frame.FLIGHT);
             frame.addBlock(f.createFrame().serialize());
             frames.add(frame);
         }
         return frames;
+    }
+
+    public void addDefaultFlight(Flight flight) throws FlightException {
+        if(defaultFlights.containsKey(flight.getId()))throw new FlightException();
     }
 }
