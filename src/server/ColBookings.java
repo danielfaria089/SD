@@ -3,8 +3,10 @@ package server;
 import common.Account;
 import common.Booking;
 import common.Exceptions.DayClosedException;
+import common.Exceptions.FlightException;
 import common.Exceptions.FlightFullException;
 import common.Exceptions.FlightNotFoundException;
+import common.Flight;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -39,6 +41,13 @@ public class ColBookings {
             bookings.add(reservations.get(bookingID));
         }
         return bookings;
+    }
+
+    public void addDefaultFlight(Flight flight) throws FlightException {
+        flightCalculator.addDefaultFlight(flight);
+        for(Flights flights: flightsMap.values()){
+            flights.addDefaultFlight(flight);
+        }
     }
 
     public void clearOldFlights(){

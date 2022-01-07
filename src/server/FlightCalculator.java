@@ -1,7 +1,11 @@
 package server;
 
 import common.Exceptions.FlightException;
+import common.Exceptions.FlightNotFoundException;
+import common.Exceptions.IncompatibleFlightsException;
+import common.Exceptions.MaxFlightsException;
 import common.Flight;
+import common.StopOvers;
 
 import java.io.*;
 import java.util.*;
@@ -53,5 +57,45 @@ public class FlightCalculator {
 
     public void addDefaultFlight(Flight flight) throws FlightException {
         if(defaultFlights.containsKey(flight.getId()))throw new FlightException();
+    }
+
+    public Set<StopOvers> getFlights(String origin, String destination) throws FlightNotFoundException, IncompatibleFlightsException, MaxFlightsException {
+        Set<StopOvers> stopOversSet= new TreeSet<>(StopOvers::compare);
+        List<List<String>> ways=new ArrayList<>();
+        List<String> current=new ArrayList<>();
+        current.add(origin);
+        //depthFirst(origin,destination,ways,current);
+        for(List<String>strings:ways){
+            StopOvers stopOvers=new StopOvers();
+            for(int i=0;i< strings.size()-1;i++){
+                String o=strings.get(i);
+                String d=strings.get(i+1);
+                Flight f=getFlight(o,d);
+                if(f==null)throw new FlightNotFoundException();
+                stopOvers.addFlight(f);
+            }
+            stopOversSet.add(stopOvers);
+        }
+        return stopOversSet;
+    }
+
+    private void depthFirst(String origin,String destination,List<List<String>> added,List<String>current){
+        if(current.size()>Flights.MAX_FLIGHTS)return;
+        current.add(origin);
+        for(String string: adjacencies.get(origin)){
+            List<String> newCurrent=new ArrayList<>(current);
+            newCurrent.add(string);
+            if(string.equals(destination)){
+                added.add(newCurrent);
+            }
+            else depthFirst(origin, destination, added, newCurrent);
+        }
+    }
+
+    private Flight getFlight(String o,String d){
+        for(Flight f:defaultFlights.values()){
+            if(f.equals(o,d))return f;
+        }
+        return null;
     }
 }

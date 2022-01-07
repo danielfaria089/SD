@@ -71,10 +71,9 @@ public class ServerConnection implements Runnable{
         output.flush();
     }
 
-    public void getPossibleBooking(Frame frame){
+    public void getPossibleBookings(Frame frame){
         String origin=new String(frame.getData().get(0),StandardCharsets.UTF_8);
         String destination=new String(frame.getData().get(1),StandardCharsets.UTF_8);
-        LocalDate date=Helpers.localDateFromBytes(frame.getData().get(2));
 
     }
 

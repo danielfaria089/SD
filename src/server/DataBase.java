@@ -4,6 +4,7 @@ import common.Account;
 import common.Exceptions.*;
 import common.Flight;
 import common.Booking;
+import common.StopOvers;
 
 import java.io.*;
 import java.util.*;
@@ -47,7 +48,7 @@ public class DataBase {
 
     //Adicionar voo aos voos padrão
     public void addDefaultFlight(Flight flight) throws FlightException {
-
+        bookings.addDefaultFlight(flight);
     }
 
     public boolean checkLogIn(String id, char[] pass){
@@ -58,6 +59,8 @@ public class DataBase {
         if(!accounts.containsKey(id))throw new AccountException();
         return accounts.get(id).isAdmin();
     }
+
+    
 
     public Set<String> getAllCities(){
         return calculator.getAllCities();
