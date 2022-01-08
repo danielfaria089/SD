@@ -9,18 +9,22 @@ import common.StopOvers;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.*;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class ColBookings {
     private Map<String, Booking> reservations;
     private Map<LocalDate,Flights> flightsMap;
     private FlightCalculator flightCalculator;
 
+    private Lock l = new ReentrantLock();
+
     public ColBookings(FlightCalculator calculator) throws IOException {
         flightCalculator=calculator;
     }
 
     public Set<Booking> getPossibleBookings(String origin, String destination, List<LocalDate> dates){
-        Set<StopOvers> stopOversSet=flightCalculator.getFlights(origin,destination);
+        Set<StopOvers> stopOversSet = flightCalculator.getFlights(origin,destination);
         Set<Booking> bookings=new TreeSet<>(Comparator.comparing(Booking::getDate));
         for(LocalDate date:dates){
             Flights flights=flightsMap.get(date);
@@ -75,6 +79,7 @@ public class ColBookings {
     }
 
     public void addDefaultFlight(Flight flight) throws FlightException {
+        l.lock();
         flightCalculator.addDefaultFlight(flight);
         for(Flights flights: flightsMap.values()){
             flights.addDefaultFlight(flight);

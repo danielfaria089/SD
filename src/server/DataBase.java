@@ -10,6 +10,9 @@ import java.io.*;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -20,6 +23,10 @@ public class DataBase {
     private ColBookings bookings;
     private FlightCalculator calculator;
     private Map<String, Account> accounts;
+
+    private ReadWriteLock l = new ReentrantReadWriteLock();
+    private Lock l_r = l.readLock();
+    private Lock l_w = l.writeLock();
 
     //Construtors
     public DataBase(){
@@ -81,25 +88,44 @@ public class DataBase {
     }
 
     public boolean checkLogIn(String id, char[] pass){
-        return Arrays.equals(accounts.get(id).getPassword(), pass);
+        l_r.lock();
+        try{
+            return Arrays.equals(accounts.get(id).getPassword(), pass);
+        }
+        finally{
+            l_r.unlock();
+        }
     }
 
     //FUNCIONALIDADE 2:DONE
 
     public boolean checkAdmin(String id) throws AccountException {
-        if(!accounts.containsKey(id))throw new AccountException();
-        return accounts.get(id).isAdmin();
+        l_r.lock();
+        try{
+            if(!accounts.containsKey(id)) throw new AccountException();
+            return accounts.get(id).isAdmin();
+        }
+        finally {
+            l_r.unlock();
+        }
     }
 
     //FUNCIONALIDADE 3:DONE
 
     public void addDefaultFlight(Flight flight) throws FlightException {
-        bookings.addDefaultFlight(flight);
+        l_w.lock();
+        flight.l.lock();
+        try{
+            bookings.addDefaultFlight(flight);
+        } finally {
+            l_w.unlock();
+            flight.l.lock();
+        }
     }
 
     //FUNCIONALIDADE 4:É preciso ainda enviar as notificações
 
-    public void cancelDay(LocalDate date){
+    public void cancelDay(LocalDate date){ // meter locks ainda
         Set<Booking> cancelledBookings= bookings.cancelDay(date);
         //falta notificar usando os bookings
     }
@@ -107,7 +133,13 @@ public class DataBase {
     //FUNCIONALIDADE 5 mix ADICIONAL 1:
 
     public Set<String> getAllCities(){
-        return calculator.getAllCities();
+        l_r.lock();
+        try{
+            return calculator.getAllCities();
+        }
+        finally {
+            l_r.unlock();
+        }
     }
 
     public Set<Booking> possibleBookings(String origin, String destination, LocalDate start, LocalDate end){

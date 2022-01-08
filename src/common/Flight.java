@@ -5,8 +5,11 @@ import common.Exceptions.WrongFrameTypeException;
 
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class Flight {
+    public Lock l = new ReentrantLock();
 
     private String id;
     private String origin;
