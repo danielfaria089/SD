@@ -21,7 +21,6 @@ public class DataBase {
     private static final String FLIGHTS_FILE="Flights.txt";
 
     private ColBookings bookings;
-    private FlightCalculator calculator;
     private Map<String, Account> accounts;
 
     private ReadWriteLock l = new ReentrantReadWriteLock();
@@ -31,9 +30,8 @@ public class DataBase {
     //Construtors
     public DataBase(){
         try{
-            calculator=new FlightCalculator(FLIGHTS_FILE);
-            bookings=new ColBookings(calculator);
             accounts=new HashMap<>();
+            bookings=new ColBookings(new FlightCalculator(FLIGHTS_FILE));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -42,55 +40,44 @@ public class DataBase {
     //FUNCIONALIDADE 1:DONE
 
     public void addClient(String username,char[]password) throws AccountException {
-        boolean cond;
-        l_r.lock();
+        l_w.lock();
         try {
-            cond = accounts.containsKey(username);
-        }
-        finally {
-            l_r.unlock();
-        }
-        if(cond)throw new AccountException();
-        else{
-            l_w.lock();
-            try{
+            if(accounts.containsKey(username))throw new AccountException();
+            else{
                 accounts.put(username,new Account(username,password,false));
-            }finally {
-                l_w.unlock();
             }
+        }
+        finally{
+            l_w.unlock();
         }
     }
 
     public void addClient(Account c) throws AccountException {
-        boolean cond;
-        l_r.lock();
         c.l.lock();
+        l_w.lock();
         try {
-            cond = accounts.containsKey(c.getUsername());
-        }
-        finally {
-            l_r.unlock();
-        }
-        try{
-            if (cond) throw new AccountException();
-            else {
-                l_w.lock();
-                try {
-                    accounts.put(c.getUsername(), new Account(c.getUsername(), c.getPassword(), false));
-                } finally {
-                    l_w.unlock();
-                }
+            if(accounts.containsKey(c.getUsername()))throw new AccountException();
+            else{
+                accounts.put(c.getUsername(),new Account(c.getUsername(),c.getPassword(),false));
             }
         }
         finally{
             c.l.unlock();
+            l_w.unlock();
         }
     }
 
     public boolean checkLogIn(String id, char[] pass){
         l_r.lock();
         try{
-            return Arrays.equals(accounts.get(id).getPassword(), pass);
+            Account c = accounts.get(id);
+            c.l.lock();
+            try{
+                return Arrays.equals(c.getPassword(), pass);
+            }finally {
+                c.l.unlock();
+
+            }
         }
         finally{
             l_r.unlock();
@@ -103,7 +90,15 @@ public class DataBase {
         l_r.lock();
         try{
             if(!accounts.containsKey(id)) throw new AccountException();
-            return accounts.get(id).isAdmin();
+            else{
+                Account c = accounts.get(id);
+                c.l.lock();
+                try {
+                    return c.isAdmin();
+                }finally {
+                    c.l.unlock();
+                }
+            }
         }
         finally {
             l_r.unlock();
@@ -113,14 +108,7 @@ public class DataBase {
     //FUNCIONALIDADE 3:DONE
 
     public void addDefaultFlight(Flight flight) throws FlightException {
-        l_w.lock();
-        flight.l.lock();
-        try{
             bookings.addDefaultFlight(flight);
-        } finally {
-            l_w.unlock();
-            flight.l.lock();
-        }
     }
 
     //FUNCIONALIDADE 4:É preciso ainda enviar as notificações
@@ -133,13 +121,7 @@ public class DataBase {
     //FUNCIONALIDADE 5 mix ADICIONAL 1:
 
     public Set<String> getAllCities(){
-        l_r.lock();
-        try{
-            return calculator.getAllCities();
-        }
-        finally {
-            l_r.unlock();
-        }
+        return bookings.getAllCities();
     }
 
     public Set<Booking> possibleBookings(String origin, String destination, LocalDate start, LocalDate end){
@@ -172,7 +154,7 @@ public class DataBase {
 
 
     public Set<Flight> getDefaultFlights() throws IOException {
-        return calculator.getDefaultFlights();
+        return bookings.getDefaultFlights();
     }
 
     //OTHERS

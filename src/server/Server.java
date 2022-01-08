@@ -1,6 +1,7 @@
 package server;
 
 import common.Exceptions.AccountException;
+import common.Frame;
 import common.Helpers;
 
 import java.io.IOException;
@@ -9,7 +10,21 @@ import java.net.Socket;
 
 public class Server {
 
-    public static void main(String[] args){
+    final static int WORKERS_PER_CONNECTION = 3;
+
+    public static void main(String[] args) throws Exception {
+        ServerSocket ss = new ServerSocket(12345);
+        DataBase db = new DataBase();
+        db.addClient("ola", new char[]{'1', '2', '3'});
+
+        while(true) {
+            Socket s = ss.accept();
+            ServerConnection sc = new ServerConnection(s,db);
+
+
+            for (int i = 0; i < WORKERS_PER_CONNECTION; ++i)
+                new Thread(sc).start();
+        }
 
     }
 }

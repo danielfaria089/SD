@@ -7,6 +7,7 @@ import common.Exceptions.FlightNotFoundException;
 import common.Exceptions.WrongFrameTypeException;
 import common.Frame;
 import common.*;
+import server.TaggedConnection;
 
 import java.io.*;
 import java.net.Socket;
@@ -17,21 +18,18 @@ import java.util.Arrays;
 import java.util.List;
 
 public class ClientConnection {
-    private Socket clientSocket;
-    private DataInputStream input;
-    private DataOutputStream output;
+    private TaggedConnection tc;
 
     public ClientConnection(String ip,int port) throws IOException {
-        clientSocket=new Socket(ip,port);
-        input=new DataInputStream(new BufferedInputStream(clientSocket.getInputStream()));
-        output=new DataOutputStream(new BufferedOutputStream(clientSocket.getOutputStream()));
+        Socket s =new Socket(ip,port);
+        tc = new TaggedConnection(s);
     }
 
     public int login(String username,char[]password) throws IOException,WrongFrameTypeException {
         Credentials credentials=new Credentials(username,password);
-        output.write(credentials.createFrame().serialize());
-        output.flush();
-        Frame response=new Frame(input);
+        tc.send(credentials.createFrame());
+
+        Frame response=tc.receive();
         if(response.getType()==Frame.BASIC){
             String resposta=new String(response.getData().get(0), StandardCharsets.UTF_8);
             if(resposta.equals("CLIENT"))return 1;
@@ -45,9 +43,8 @@ public class ClientConnection {
         Frame frame=new Frame(Frame.BOOKING);
         frame.addBlock(Helpers.localDateToBytes(date));
         frame.addBlock(stopOvers.createFrame().serialize());
-        output.write(frame.serialize());
-        output.flush();
-        Frame response=new Frame(input);
+        tc.send(frame);
+        Frame response= tc.receive();
         if(response.getType()==0){
             String resposta=new String(response.getData().get(0), StandardCharsets.UTF_8);
             switch(resposta){
@@ -63,9 +60,9 @@ public class ClientConnection {
     public List<Flight> allFlights() throws IOException, WrongFrameTypeException {
         Frame frame = new Frame((Frame.ALL_FLIGHTS));
         List<Flight> flights = new ArrayList<>();
-        output.write(frame.serialize());
-        output.flush();
-        Frame response = new Frame(input);
+        tc.send(frame);
+
+        Frame response = tc.receive();
         if(response.getType()==4){
             for(byte[] b : frame.getData()){
                 flights.add(new Flight(new Frame(b)));
@@ -77,9 +74,8 @@ public class ClientConnection {
     public List<String> allCities() throws IOException {
         Frame frame = new Frame(Frame.CITIES);
         List<String> ret = new ArrayList<>();
-        output.write((frame.serialize()));
-        output.flush();
-        Frame response = new Frame(input);
+        tc.send(frame);
+        Frame response = tc.receive();
         if(response.getType()==6){
             for(byte[] b : response.getData()){
                 String aux = new String(b,StandardCharsets.UTF_8);
@@ -92,9 +88,8 @@ public class ClientConnection {
     public List<Flight> getBookingsFromAccount() throws IOException, WrongFrameTypeException {
         Frame frame = new Frame(Frame.ACCOUNT_FLIGHTS);
         List<Flight> flights = new ArrayList<>();
-        output.write(frame.serialize());
-        output.flush();
-        Frame response = new Frame(input);
+        tc.send(frame);
+        Frame response = tc.receive();
         if(response.getType()==5){
             for(byte[] b : response.getData()){
                 flights.add(new Flight(new Frame(b)));
@@ -105,9 +100,7 @@ public class ClientConnection {
 
     public void close(){
         try{
-            clientSocket.close();
-            input.close();
-            output.close();
+            tc.close();
         }catch(IOException e){
             e.printStackTrace();
         }

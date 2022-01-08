@@ -10,14 +10,18 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class ColBookings {
     private Map<String, Booking> reservations;
     private Map<LocalDate,Flights> flightsMap;
     private FlightCalculator flightCalculator;
 
-    private Lock l = new ReentrantLock();
+    private ReadWriteLock l = new ReentrantReadWriteLock();
+    private Lock l_w = l.writeLock();
+    private Lock l_r = l.readLock();
 
     public ColBookings(FlightCalculator calculator) throws IOException {
         flightCalculator=calculator;
@@ -79,10 +83,19 @@ public class ColBookings {
     }
 
     public void addDefaultFlight(Flight flight) throws FlightException {
-        l.lock();
-        flightCalculator.addDefaultFlight(flight);
-        for(Flights flights: flightsMap.values()){
-            flights.addDefaultFlight(flight);
+        flightCalculator.l_w.lock();
+        try {
+            flightCalculator.addDefaultFlight(flight);
+        }finally {
+            l_w.lock();
+            flightCalculator.l_w.unlock();
+        }
+        try {
+            for(Flights flights: flightsMap.values()){
+                flights.addDefaultFlight(flight);
+            }
+        }finally {
+            l_w.unlock();
         }
     }
 
@@ -106,4 +119,13 @@ public class ColBookings {
             if(booking.getDate().isBefore(LocalDate.now().minusDays(1)))reservations.remove(booking.getBookingID());
         }
     }
+
+    public Set<String> getAllCities(){
+        return flightCalculator.getAllCities();
+    }
+
+    public Set<Flight> getDefaultFlights(){
+        return flightCalculator.getDefaultFlights();
+    }
+
 }

@@ -9,11 +9,18 @@ import common.StopOvers;
 
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.locks.ReadWriteLock;
 import java.util.stream.Collectors;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.locks.Lock;
 
 public class FlightCalculator {
     private Map<String, Flight> defaultFlights;
     private Map<String, Set<String>> adjacencies;
+
+    private ReadWriteLock l = new ReentrantReadWriteLock();
+    private Lock l_r = l.readLock();
+    public Lock l_w = l.writeLock();
 
     public FlightCalculator(String filename) throws IOException {
         readFlights(filename);
@@ -57,6 +64,9 @@ public class FlightCalculator {
 
     public void addDefaultFlight(Flight flight) throws FlightException {
         if(defaultFlights.containsKey(flight.getId()))throw new FlightException();
+        else{
+            defaultFlights.put(flight.getId(),flight.clone());
+        }
     }
 
     public Set<StopOvers> getFlights(String origin, String destination){

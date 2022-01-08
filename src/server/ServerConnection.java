@@ -13,24 +13,19 @@ import java.util.Set;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 
-public class ServerConnection implements Runnable{
-    private Socket socket;
-    private DataInputStream input;
-    private DataOutputStream output;
+public class ServerConnection implements Runnable, AutoCloseable{
+    private TaggedConnection tc;
     private DataBase dataBase;
 
     private String loggedUser;
 
     public ServerConnection(Socket socket,DataBase dataBase) throws IOException {
-        this.socket=socket;
+        this.tc = new TaggedConnection(socket);
         this.dataBase=dataBase;
-        input=new DataInputStream(new BufferedInputStream(socket.getInputStream()));
-        output=new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
     }
 
     public boolean receive() throws IOException, WrongFrameTypeException, AccountException, IncompatibleFlightsException, MaxFlightsException {
-        Frame frame=new Frame();
-        frame.deserialize(input);
+        Frame frame=tc.receive();
         switch (frame.getType()){
             case (byte)1:
                 login(frame);//Recebe credentials e dá login
@@ -62,14 +57,14 @@ public class ServerConnection implements Runnable{
                 success.addBlock("ADMIN".getBytes(StandardCharsets.UTF_8));
             }
             else success.addBlock("CLIENT".getBytes(StandardCharsets.UTF_8));
-            output.write(success.serialize());
+
+            tc.send(success);
         }
         else{
             Frame failure=new Frame(Frame.BASIC);
             failure.addBlock("ERROR".getBytes(StandardCharsets.UTF_8));
-            output.write(failure.serialize());
+            tc.send(failure);
         }
-        output.flush();
     }
 
     public void getPossibleBookings(Frame frame){
@@ -88,21 +83,20 @@ public class ServerConnection implements Runnable{
             dataBase.addBooking(booking);
             Frame success=new Frame(Frame.BASIC);
             success.addBlock(booking.getBookingID().getBytes(StandardCharsets.UTF_8));
-            output.write(success.serialize());
+            tc.send(success);
         }catch (FlightNotFoundException e){
             Frame failure=new Frame(Frame.BASIC);
             failure.addBlock("NOT FOUND".getBytes(StandardCharsets.UTF_8));
-            output.write(failure.serialize());
+            tc.send(failure);
         }catch (FlightFullException e){
             Frame failure=new Frame(Frame.BASIC);
             failure.addBlock("FULL".getBytes(StandardCharsets.UTF_8));
-            output.write(failure.serialize());
+            tc.send(failure);
         }catch (DayClosedException e){
             Frame failure=new Frame(Frame.BASIC);
             failure.addBlock("DAY CLOSED".getBytes(StandardCharsets.UTF_8));
-            output.write(failure.serialize());
+            tc.send(failure);
         }
-        output.flush();
     }
 
     private void allFlights(){
@@ -112,8 +106,7 @@ public class ServerConnection implements Runnable{
             for(Flight f : flights){
                 frame.addBlock(f.createFrame().serialize());
             }
-            output.write(frame.serialize());
-            output.flush();
+            tc.send(frame);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -125,8 +118,7 @@ public class ServerConnection implements Runnable{
         for(String city:cities){
             frame.addBlock(city.getBytes(StandardCharsets.UTF_8));
         }
-        output.write(frame.serialize());
-        output.flush();
+        tc.send(frame);
     }
 
     public void getAllBookingsFromAccount() throws IOException { // ta a meter tudo na mesma frame não sei se cabe
@@ -137,8 +129,7 @@ public class ServerConnection implements Runnable{
                 frame.addBlock(f.createFrame().serialize());
             }
         }
-        output.write((frame.serialize()));
-        output.flush();
+        tc.send(frame);
     }
 
     @Override
@@ -148,11 +139,14 @@ public class ServerConnection implements Runnable{
             while(run) {
                 if (!receive()) run=false;
             }
-            socket.close();
-            output.close();
-            input.close();
+            tc.close();
         } catch (IOException | WrongFrameTypeException | AccountException | IncompatibleFlightsException | MaxFlightsException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void close() throws Exception {
+        tc.close();
     }
 }
