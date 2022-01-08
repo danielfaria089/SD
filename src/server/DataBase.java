@@ -35,11 +35,25 @@ public class DataBase {
     //FUNCIONALIDADE 1:DONE
 
     public void addClient(String username,char[]password) throws AccountException {
-        if(accounts.containsKey(username))throw new AccountException();
+        boolean cond;
+        l_r.lock();
+        try {
+            cond = accounts.containsKey(username);
+        }
+        finally {
+            l_r.unlock();
+        }
+        if(cond)throw new AccountException();
         else{
-            accounts.put(username,new Account(username,password,false));
+            l_w.lock();
+            try{
+                accounts.put(username,new Account(username,password,false));
+            }finally {
+                l_w.unlock();
+            }
         }
     }
+
     public void addClient(Account c) throws AccountException {
         boolean cond;
         l_r.lock();
