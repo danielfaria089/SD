@@ -104,7 +104,7 @@ public class DataBase {
         //falta notificar usando os bookings
     }
 
-    //FUNCIONALIDADE 5 mix ADICIONAL 2:
+    //FUNCIONALIDADE 5 mix ADICIONAL 1:
 
     public Set<String> getAllCities(){
         return calculator.getAllCities();

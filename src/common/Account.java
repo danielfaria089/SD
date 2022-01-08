@@ -1,28 +1,31 @@
 package common;
 
-import common.Exceptions.WrongFrameTypeException;
-import common.Flight;
-import server.Flights;
-
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.time.LocalDate;
 import java.util.*;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.Lock;
 
 public class Account {
 
     private String username;
     private char[] password;
     private boolean admin;//true=admin  false==client
-    private Set<String> flights;
-    private Set<String> notifications;
+    private Set<String> bookings;
+    private Set<String> notifications;  //Not sure se vamos usar isto
+
+    public Lock l = new ReentrantLock();
 
     public Account(String u, char[] p, boolean b){
         this.username = u;
         this.password = p.clone();
         this.admin = b;
-        this.flights = new TreeSet<>();
-        this.notifications=new TreeSet<>();
+        this.bookings = new TreeSet<>();
+    }
+
+    public Account(Account account){
+        this.username=account.username;
+        this.password=account.password;
+        this.admin= account.admin;
+        this.bookings =account.getBookingsIds();
     }
 
     public String getUsername() {
@@ -38,14 +41,18 @@ public class Account {
     }
 
     public void addBooking(String bookingID){
-        flights.add(bookingID);
+        bookings.add(bookingID);
     }
 
     public void removeBooking(String id){
-        flights.remove(id);
+        bookings.remove(id);
     }
 
     public Set<String> getBookingsIds(){
-        return new TreeSet<>(flights);
+        return new TreeSet<>(bookings);
+    }
+
+    public Account clone(){
+        return new Account(this);
     }
 }

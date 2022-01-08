@@ -1,8 +1,12 @@
-    Mudei a forma como guardamos os nossos dados, agora para cada dia guardamos os todos os voos.
-    Por cause desta linha do enunciado:" Encerramento de um dia por parte do administrador,
-impedindo novas reservas para esse dia e cancelamento de reservas desse dia"
-    Quando iniciarmos um dia nos bookings o construtor vai receber a adjacencia entre as varias
-cidades(que irá ser carregada na base de dados atraves de um ficheiro) e os voos default(vazios, lidos de um ficheiro)
-
-Agora em vez de marcar diretamente um voo, o cliente marca uma viagem, que é composta por um ou mais voos
- sendo assim mais facil de ver as escalas e tal.
+Funcionalidade 1:
+    1   Cliente envia infos num frame(Tipo 1)
+    2   Servidor verifica e envia uma mensagem com a resposta(Tipo 0)
+Funcionalidade 2:
+    1   Mesmo de cima
+Funcionalidade 3:
+    1   Admin envia informações sobre um voo(Tipo 2)
+    2   Servidor escreve essas informações, cirando um voo, e envia a resposta(Tipo 0)
+Funcionalidade 4:
+    1   Admin envia uma mensagem para encerrar um dia(Tipo 3)
+    2   Servidor adece à base de dados e encerra o dia, enviando uma mensagem para todos os utilizadores
+            que tinham reservas para esse dia.

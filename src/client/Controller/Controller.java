@@ -17,7 +17,8 @@ public class Controller {
         return model.login(username,password);
     }
 
-
-
+    public String[] getCityNames(){
+        return model.getCities().toArray(new String[0]);
+    }
 
 }
