@@ -7,6 +7,7 @@ import common.*;
 
 import java.io.*;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.net.Socket;
@@ -125,6 +126,18 @@ public class ServerConnection implements Runnable{
             frame.addBlock(city.getBytes(StandardCharsets.UTF_8));
         }
         output.write(frame.serialize());
+        output.flush();
+    }
+
+    public void getAllBookingsFromAccount() throws IOException { // ta a meter tudo na mesma frame não sei se cabe
+        Frame frame = new Frame((Frame.ACCOUNT_FLIGHTS)); //Não sei o tipo ainda
+        Set<String> set = dataBase.getAccount(loggedUser).getBookingsIds();
+        for(String s : set){
+            for(Flight f : dataBase.getFlightsFromBooking(s)){
+                frame.addBlock(f.createFrame().serialize());
+            }
+        }
+        output.write((frame.serialize()));
         output.flush();
     }
 

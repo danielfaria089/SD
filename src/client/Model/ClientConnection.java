@@ -12,6 +12,9 @@ import java.io.*;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class ClientConnection {
     private Socket clientSocket;
@@ -55,6 +58,49 @@ public class ClientConnection {
             }
         }
         else throw new WrongFrameTypeException();
+    }
+
+    public List<Flight> allFlights() throws IOException, WrongFrameTypeException {
+        Frame frame = new Frame((Frame.ALL_FLIGHTS));
+        List<Flight> flights = new ArrayList<>();
+        output.write(frame.serialize());
+        output.flush();
+        Frame response = new Frame(input);
+        if(response.getType()==4){
+            for(byte[] b : frame.getData()){
+                flights.add(new Flight(new Frame(b)));
+            }
+        }
+        return flights;
+    }
+
+    public List<String> allCities() throws IOException {
+        Frame frame = new Frame(Frame.CITIES);
+        List<String> ret = new ArrayList<>();
+        output.write((frame.serialize()));
+        output.flush();
+        Frame response = new Frame(input);
+        if(response.getType()==6){
+            for(byte[] b : response.getData()){
+                String aux = new String(b,StandardCharsets.UTF_8);
+                ret.add(aux);
+            }
+        }
+        return ret;
+    }
+
+    public List<Flight> getBookingsFromAccount() throws IOException, WrongFrameTypeException {
+        Frame frame = new Frame(Frame.ACCOUNT_FLIGHTS);
+        List<Flight> flights = new ArrayList<>();
+        output.write(frame.serialize());
+        output.flush();
+        Frame response = new Frame(input);
+        if(response.getType()==5){
+            for(byte[] b : response.getData()){
+                flights.add(new Flight(new Frame(b)));
+            }
+        }
+        return flights;
     }
 
     public void close(){

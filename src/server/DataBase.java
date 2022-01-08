@@ -41,9 +41,28 @@ public class DataBase {
         }
     }
     public void addClient(Account c) throws AccountException {
-        if(accounts.containsKey(c.getUsername()))throw new AccountException();
-        else{
-            accounts.put(c.getUsername(),c);
+        boolean cond;
+        l_r.lock();
+        c.l.lock();
+        try {
+            cond = accounts.containsKey(c.getUsername());
+        }
+        finally {
+            l_r.unlock();
+        }
+        try{
+            if (cond) throw new AccountException();
+            else {
+                l_w.lock();
+                try {
+                    accounts.put(c.getUsername(), new Account(c.getUsername(), c.getPassword(), false));
+                } finally {
+                    l_w.unlock();
+                }
+            }
+        }
+        finally{
+            c.l.unlock();
         }
     }
 
@@ -93,6 +112,14 @@ public class DataBase {
 
     public void cancelBooking(String bookingID,String clientID) throws BookingNotFound, DayClosedException, AccountException {
         bookings.cancelBooking(bookingID,clientID);
+    }
+
+    public List<Flight> getFlightsFromBooking(String id){
+        return bookings.getFlightsFromBooking(id);
+    }
+
+    public Account getAccount(String id){
+        return accounts.get(id).clone();
     }
 
     //FUNCIONALIDADE 7:

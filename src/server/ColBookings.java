@@ -70,6 +70,10 @@ public class ColBookings {
         return bookings;
     }
 
+    public List<Flight> getFlightsFromBooking(String id){
+        return reservations.get(id).getStopOvers().getStopOvers();
+    }
+
     public void addDefaultFlight(Flight flight) throws FlightException {
         flightCalculator.addDefaultFlight(flight);
         for(Flights flights: flightsMap.values()){
