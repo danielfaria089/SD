@@ -16,7 +16,7 @@ public class Server {
         ServerSocket ss = new ServerSocket(12345);
         DataBase db = new DataBase();
         db.addClient("ola", new char[]{'1', '2', '3'});
-
+        db.adicionarNotificacaoACliente("ola","cona cona cona cona cona");
         while(true) {
             Socket s = ss.accept();
             ServerConnection sc = new ServerConnection(s,db);

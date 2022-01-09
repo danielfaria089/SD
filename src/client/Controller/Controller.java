@@ -13,7 +13,7 @@ public class Controller {
         this.model=model;
     }
 
-    public int login(String username,char[]password) throws IOException, WrongFrameTypeException {
+    public String[] login(String username,char[]password) throws IOException, WrongFrameTypeException {
         return model.login(username,password);
     }
 

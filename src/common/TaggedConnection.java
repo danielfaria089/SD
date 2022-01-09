@@ -1,4 +1,4 @@
-package server;
+package common;
 
 import common.Frame;
 
@@ -21,6 +21,10 @@ public class TaggedConnection implements AutoCloseable {
         in.close();
         out.close();
         socket.close();
+    }
+
+    public boolean isClosed(){
+        return socket.isClosed();
     }
 
     public TaggedConnection(Socket socket) throws IOException {

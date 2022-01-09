@@ -100,15 +100,17 @@ public class ColBookings {
     }
 
     //Cancela as reservas e retorna-as para os seus clientes poderem ser notificados
-    public Set<Booking> cancelDay(LocalDate date){
-        Set<Booking> bookings=new TreeSet<>(Booking::compare);
+    public Set<String> cancelDay(LocalDate date){
+        Set<String> notif = new TreeSet<>();
         for(Booking booking:reservations.values()){
             if(booking.getDate().equals(date)) {
-                bookings.add(booking.clone());
+                notif.add(booking.createNotification());
                 reservations.remove(booking.getBookingID());
             }
         }
-        return bookings;
+
+
+        return notif;
     }
 
     public void clearOldFlights(){

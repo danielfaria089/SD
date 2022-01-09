@@ -73,4 +73,8 @@ public class Booking {
     public Booking clone(){
         return new Booking(this);
     }
+
+    public String createNotification(){
+        return clientID + " " + bookingID;
+    }
 }

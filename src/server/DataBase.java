@@ -114,8 +114,19 @@ public class DataBase {
     //FUNCIONALIDADE 4:É preciso ainda enviar as notificações
 
     public void cancelDay(LocalDate date){ // meter locks ainda
-        Set<Booking> cancelledBookings= bookings.cancelDay(date);
-        //falta notificar usando os bookings
+        Set<String> cancelledBookings= bookings.cancelDay(date);
+        for(String notif : cancelledBookings){
+            String[] notificacao = notif.split(" ");
+            accounts.get(notificacao[0]).adicionarNotificacao(notificacao[1]);
+        }
+    }
+
+    public void adicionarNotificacaoACliente(String id, String not){
+        accounts.get(id).adicionarNotificacao(not);
+    }
+
+    public Set<String> getNotificacoesCliente(String id){
+        return this.accounts.get(id).getNotifications(true);
     }
 
     //FUNCIONALIDADE 5 mix ADICIONAL 1:

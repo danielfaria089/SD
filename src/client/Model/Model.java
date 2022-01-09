@@ -12,7 +12,7 @@ public class Model {
         this.connection=connection;
     }
 
-    public int login(String username,char[]password) throws IOException, WrongFrameTypeException {
+    public String[] login(String username,char[]password) throws IOException, WrongFrameTypeException {
         return connection.login(username,password);
     }
 

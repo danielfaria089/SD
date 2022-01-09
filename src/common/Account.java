@@ -19,6 +19,7 @@ public class Account {
         this.password = p.clone();
         this.admin = b;
         this.bookings = new TreeSet<>();
+        this.notifications = new TreeSet<>();
     }
 
     public Account(Account account){
@@ -26,6 +27,7 @@ public class Account {
         this.password=account.password;
         this.admin= account.admin;
         this.bookings =account.getBookingsIds();
+        this.notifications = account.getNotifications(false);
     }
 
     public String getUsername() {
@@ -54,5 +56,16 @@ public class Account {
 
     public Account clone(){
         return new Account(this);
+    }
+
+    public void adicionarNotificacao(String notf){
+        notifications.add(notf);
+    }
+
+    public Set<String> getNotifications(boolean clear){
+        Set<String> res = new TreeSet<>(notifications);
+        if(clear)
+            notifications.clear();
+        return res;
     }
 }

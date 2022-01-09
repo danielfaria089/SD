@@ -60,15 +60,26 @@ public class LoginWindow extends Window{
 
         login.addActionListener(e->{
             try {
-                int result;
-                if((result = getController().login(username.getText(),password.getPassword()))>0){
+                String[] result = getController().login(username.getText(),password.getPassword()); // result tem os id's das reservas canceladas a partir do indice 1
+                int id = Integer.parseInt(result[0]);
+                if(id>0){
                     popupMessage("Loggado com sucesso",SUCCESS);
                     setBase(false);
-                    Window window=new ClientWindow(getController(),otherWindowsSize);//Remover este construtor quando tiver pronto
-                    /*
-                    if(result==1)window=new ClientWindow(getController(),otherWindowsSize);
-                    else window=new AdminWindow(getController(),otherWindowsSize);
-                    */
+                    Window window;
+
+                    if(id==1){
+                        window=new ClientWindow(getController(),otherWindowsSize);
+                        if(result.length > 1){
+                            StringBuilder sb = new StringBuilder();
+                            sb.append("As seguintes reservas foram canceladas: ").append("\n");
+                            for(int i = 1; i < result.length ; i++)
+                                sb.append("\t-").append(result[i]).append("\n");
+                            popupMessage(sb.toString(),WARNING);
+                        }
+                    }
+                    else
+                        window=new AdminWindow(getController(),otherWindowsSize);
+
                     window.show();
                 }
                 else{

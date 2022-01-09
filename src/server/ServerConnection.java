@@ -6,6 +6,7 @@ import common.Frame;
 import common.*;
 
 import java.io.*;
+import java.net.SocketException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,6 +27,8 @@ public class ServerConnection implements Runnable, AutoCloseable{
 
     public boolean receive() throws IOException, WrongFrameTypeException, AccountException, IncompatibleFlightsException, MaxFlightsException {
         Frame frame=tc.receive();
+        if(frame == null) return false;
+
         switch (frame.getType()){
             case (byte)1:
                 login(frame);//Recebe credentials e dá login
@@ -42,6 +45,10 @@ public class ServerConnection implements Runnable, AutoCloseable{
             case (byte)7:
 
                 break;
+            case (byte)8:
+                getNotificacoes(frame);
+                break;
+
             default:
                 return false;
         }
@@ -56,7 +63,12 @@ public class ServerConnection implements Runnable, AutoCloseable{
             if(dataBase.checkAdmin(loggedUser)){
                 success.addBlock("ADMIN".getBytes(StandardCharsets.UTF_8));
             }
-            else success.addBlock("CLIENT".getBytes(StandardCharsets.UTF_8));
+            else{
+                success.addBlock("CLIENT".getBytes(StandardCharsets.UTF_8));
+                Set<String> notif = dataBase.getNotificacoesCliente(loggedUser);
+                for(String not : notif)
+                    success.addBlock(not.getBytes(StandardCharsets.UTF_8));
+            }
 
             tc.send(success);
         }
@@ -132,6 +144,16 @@ public class ServerConnection implements Runnable, AutoCloseable{
         tc.send(frame);
     }
 
+    public void getNotificacoes(Frame frame) throws AccountException, IOException {
+        Frame success=new Frame(Frame.NOTIF,new ArrayList<>());
+        if(!dataBase.checkAdmin(loggedUser)){
+            Set<String> notif = dataBase.getNotificacoesCliente(loggedUser);
+            for(String not : notif)
+                success.addBlock(not.getBytes(StandardCharsets.UTF_8));
+        }
+        tc.send(success);
+    }
+
     @Override
     public void run(){
         boolean run=true;
@@ -139,8 +161,10 @@ public class ServerConnection implements Runnable, AutoCloseable{
             while(run) {
                 if (!receive()) run=false;
             }
-            tc.close();
-        } catch (IOException | WrongFrameTypeException | AccountException | IncompatibleFlightsException | MaxFlightsException e) {
+        }catch (EOFException eof){
+            //nada
+        }
+        catch (IOException | WrongFrameTypeException | AccountException | IncompatibleFlightsException | MaxFlightsException e) {
             e.printStackTrace();
         }
     }

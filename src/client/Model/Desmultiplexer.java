@@ -1,6 +1,7 @@
-package server;
+package client.Model;
 
 import common.Frame;
+import common.TaggedConnection;
 
 import java.io.IOException;
 import java.util.*;

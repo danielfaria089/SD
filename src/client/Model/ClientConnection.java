@@ -7,14 +7,13 @@ import common.Exceptions.FlightNotFoundException;
 import common.Exceptions.WrongFrameTypeException;
 import common.Frame;
 import common.*;
-import server.TaggedConnection;
+import common.TaggedConnection;
 
 import java.io.*;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class ClientConnection {
@@ -25,16 +24,25 @@ public class ClientConnection {
         tc = new TaggedConnection(s);
     }
 
-    public int login(String username,char[]password) throws IOException,WrongFrameTypeException {
+    public String[] login(String username,char[]password) throws IOException,WrongFrameTypeException {
         Credentials credentials=new Credentials(username,password);
         tc.send(credentials.createFrame());
 
         Frame response=tc.receive();
         if(response.getType()==Frame.BASIC){
-            String resposta=new String(response.getData().get(0), StandardCharsets.UTF_8);
-            if(resposta.equals("CLIENT"))return 1;
-            else if(resposta.equals("ADMIN"))return 2;
-            else return -1;
+            List<byte[]> resp = response.getData();
+            String resposta=new String(resp.get(0), StandardCharsets.UTF_8);
+            if(resposta.equals("CLIENT")){
+                String[] res = new String[resp.size()];
+                res[0] = "1";
+                for(int i = 1; i < resp.size() ; i++){
+                    String bookingId = new String(resp.get(i), StandardCharsets.UTF_8);
+                    res[i] = bookingId;
+                }
+                return res;
+            }
+            else if(resposta.equals("ADMIN"))return new String[]{"2"};
+            else return new String[]{"-1"};
         }
         else throw new WrongFrameTypeException();
     }
@@ -45,7 +53,7 @@ public class ClientConnection {
         frame.addBlock(stopOvers.createFrame().serialize());
         tc.send(frame);
         Frame response= tc.receive();
-        if(response.getType()==0){
+        if(response.getType()==Frame.BASIC){
             String resposta=new String(response.getData().get(0), StandardCharsets.UTF_8);
             switch(resposta){
                 case "NOT FOUND":throw new FlightNotFoundException();
@@ -63,7 +71,7 @@ public class ClientConnection {
         tc.send(frame);
 
         Frame response = tc.receive();
-        if(response.getType()==4){
+        if(response.getType()==Frame.ALL_FLIGHTS){
             for(byte[] b : frame.getData()){
                 flights.add(new Flight(new Frame(b)));
             }
@@ -76,7 +84,7 @@ public class ClientConnection {
         List<String> ret = new ArrayList<>();
         tc.send(frame);
         Frame response = tc.receive();
-        if(response.getType()==6){
+        if(response.getType()==Frame.CITIES){
             for(byte[] b : response.getData()){
                 String aux = new String(b,StandardCharsets.UTF_8);
                 ret.add(aux);
@@ -90,13 +98,27 @@ public class ClientConnection {
         List<Flight> flights = new ArrayList<>();
         tc.send(frame);
         Frame response = tc.receive();
-        if(response.getType()==5){
+        if(response.getType()==Frame.ACCOUNT_FLIGHTS){
             for(byte[] b : response.getData()){
                 flights.add(new Flight(new Frame(b)));
             }
         }
         return flights;
     }
+
+    public String[] pedeNotificacoes() throws IOException {
+        tc.send(Frame.NOTIF,new ArrayList<>());
+
+
+        List<byte[]> resp =tc.receive().getData();
+        String[] res = new String[resp.size()];
+        for(int i = 0; i < resp.size() ; i++){
+            String bookingId = new String(resp.get(i), StandardCharsets.UTF_8);
+            res[i] = bookingId;
+        }
+        return res;
+    }
+
 
     public void close(){
         try{
