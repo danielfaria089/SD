@@ -1,10 +1,8 @@
 package client.Model;
 
 import common.Credentials;
-import common.Exceptions.DayClosedException;
-import common.Exceptions.FlightFullException;
-import common.Exceptions.FlightNotFoundException;
-import common.Exceptions.WrongFrameTypeException;
+import common.Exceptions.*;
+import common.Exceptions.UnknownError;
 import common.Frame;
 import common.*;
 import common.TaggedConnection;
@@ -47,7 +45,7 @@ public class ClientConnection {
         else throw new WrongFrameTypeException();
     }
 
-    public String reservation(LocalDate date,StopOvers stopOvers) throws IOException, WrongFrameTypeException,DayClosedException,FlightFullException,FlightNotFoundException {
+    public String reservation(LocalDate date,StopOvers stopOvers) throws IOException, WrongFrameTypeException, DayClosedException, FlightFullException, FlightNotFoundException, AccountException, WrongCredencials, UnknownError, BookingNotFound {
         Frame frame=new Frame(Frame.BOOKING);
         frame.addBlock(Helpers.localDateToBytes(date));
         frame.addBlock(stopOvers.createFrame().serialize());
@@ -55,12 +53,8 @@ public class ClientConnection {
         Frame response= tc.receive();
         if(response.getType()==Frame.BASIC){
             String resposta=new String(response.getData().get(0), StandardCharsets.UTF_8);
-            switch(resposta){
-                case "NOT FOUND":throw new FlightNotFoundException();
-                case "FULL":throw new FlightFullException();
-                case "DAY CLOSED":throw new DayClosedException();
-                default:return resposta;
-            }
+            trataErros(resposta);
+            return resposta;
         }
         else throw new WrongFrameTypeException();
     }
@@ -93,17 +87,17 @@ public class ClientConnection {
         return ret;
     }
 
-    public List<Flight> getBookingsFromAccount() throws IOException, WrongFrameTypeException {
+    public List<String> getBookingsFromAccount() throws IOException, WrongFrameTypeException {
         Frame frame = new Frame(Frame.ACCOUNT_FLIGHTS);
-        List<Flight> flights = new ArrayList<>();
+        List<String> bookings = new ArrayList<>();
         tc.send(frame);
         Frame response = tc.receive();
         if(response.getType()==Frame.ACCOUNT_FLIGHTS){
             for(byte[] b : response.getData()){
-                flights.add(new Flight(new Frame(b)));
+                bookings.add(new String(b,StandardCharsets.UTF_8));
             }
         }
-        return flights;
+        return bookings;
     }
 
     public String[] pedeNotificacoes() throws IOException {
@@ -119,6 +113,37 @@ public class ClientConnection {
         return res;
     }
 
+    public void cancelaBooking(String bookingId) throws IOException, FlightNotFoundException, DayClosedException, AccountException, WrongCredencials, UnknownError, BookingNotFound, FlightFullException {
+        Frame frame = new Frame(Frame.CANCEL);
+        frame.addBlock(bookingId.getBytes(StandardCharsets.UTF_8));
+        tc.send(frame);
+
+        List<byte[]> resp = tc.receive().getData();
+        if(!resp.isEmpty()){
+            trataErros(new String(resp.get(0),StandardCharsets.UTF_8));
+        }
+    }
+
+    public void trataErros(String erro) throws AccountException, BookingNotFound, DayClosedException, FlightNotFoundException, FlightFullException, WrongCredencials, UnknownError {
+        switch (erro){
+            case "A":
+                throw new AccountException();
+            case "B":
+                throw new BookingNotFound();
+            case "D":
+                throw new DayClosedException();
+            case "Fn":
+                throw new FlightNotFoundException();
+            case "Ff":
+                throw new FlightFullException();
+            case "L":
+                throw new WrongCredencials();
+            case "?":
+                throw new UnknownError();
+            default:
+
+        }
+    }
 
     public void close(){
         try{

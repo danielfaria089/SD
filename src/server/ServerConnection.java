@@ -9,6 +9,7 @@ import java.io.*;
 import java.net.SocketException;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.net.Socket;
@@ -25,37 +26,48 @@ public class ServerConnection implements Runnable, AutoCloseable{
         this.dataBase=dataBase;
     }
 
-    public boolean receive() throws IOException, WrongFrameTypeException, AccountException, IncompatibleFlightsException, MaxFlightsException {
+    public boolean receive() throws IOException, WrongFrameTypeException{
         Frame frame=tc.receive();
         if(frame == null) return false;
 
-        switch (frame.getType()){
-            case (byte)1:
-                login(frame);//Recebe credentials e dá login
-                break;
-            case (byte)3:
-                reservation(frame);//Recebe uma trip e regista os voos
-                break;
-            case (byte)4:
-                allFlights();//Recebe uma trip e regista os voos
-                break;
-            case (byte)6:
-                sendCities();//Envia a lista de cidades
-                break;
-            case (byte)7:
+        try {
+            switch (frame.getType()) {
+                case Frame.LOGIN:
+                    login(frame);//Recebe credentials e dá login
+                    break;
+                case Frame.BOOKING:
+                    reservation(frame);//Recebe uma trip e regista os voos
+                    break;
+                case Frame.ALL_FLIGHTS:
+                    allFlights();//Recebe uma trip e regista os voos
+                    break;
+                case Frame.ACCOUNT_FLIGHTS:
+                    getAllBookingsFromAccount(); break;
+                case Frame.CITIES:
+                    sendCities();//Envia a lista de cidades
+                    break;
+                case Frame.STOPOVERS:
 
-                break;
-            case (byte)8:
-                getNotificacoes(frame);
-                break;
-
-            default:
-                return false;
+                    break;
+                case Frame.NOTIF:
+                    getNotificacoes(frame); // envia notificacoes de cancelamento
+                    break;
+                case Frame.CANCEL:
+                    cancelaBooking(frame); // cancela um booking
+                default:
+                    return false;
+            }
+        }catch (IOException | WrongFrameTypeException e){
+            throw e;
+        }catch (Exception e){
+            Frame failure=new Frame(Frame.BASIC);
+            trataErros(e,failure);
+            tc.send(failure);
         }
         return true;
     }
 
-    private void login(Frame frame) throws IOException, WrongFrameTypeException, AccountException {
+    private void login(Frame frame) throws IOException, WrongFrameTypeException, AccountException, WrongCredencials {
         Credentials credentials=new Credentials(frame);
         if(dataBase.checkLogIn(credentials.getUsername(), credentials.getPassword())){
             loggedUser=credentials.getUsername();
@@ -73,9 +85,7 @@ public class ServerConnection implements Runnable, AutoCloseable{
             tc.send(success);
         }
         else{
-            Frame failure=new Frame(Frame.BASIC);
-            failure.addBlock("ERROR".getBytes(StandardCharsets.UTF_8));
-            tc.send(failure);
+            throw new WrongCredencials();
         }
     }
 
@@ -86,42 +96,24 @@ public class ServerConnection implements Runnable, AutoCloseable{
     }
 
     //Frame que recebe: (byte)Type :(0) (LocalDate)data -> (1) (Trip)viagem
-    private void reservation(Frame frame) throws IOException, IncompatibleFlightsException, MaxFlightsException, WrongFrameTypeException {
+    private void reservation(Frame frame) throws IOException, IncompatibleFlightsException, MaxFlightsException, WrongFrameTypeException, FlightNotFoundException, DayClosedException, FlightFullException {
         List<byte[]>data=frame.getData();
         LocalDate date=LocalDate.parse(new String(data.get(0),StandardCharsets.UTF_8));
         StopOvers stopOvers =new StopOvers(new Frame(data.get(1)));
         Booking booking=new Booking(loggedUser,date,stopOvers.getStopOvers());
-        try{
-            dataBase.addBooking(booking);
-            Frame success=new Frame(Frame.BASIC);
-            success.addBlock(booking.getBookingID().getBytes(StandardCharsets.UTF_8));
-            tc.send(success);
-        }catch (FlightNotFoundException e){
-            Frame failure=new Frame(Frame.BASIC);
-            failure.addBlock("NOT FOUND".getBytes(StandardCharsets.UTF_8));
-            tc.send(failure);
-        }catch (FlightFullException e){
-            Frame failure=new Frame(Frame.BASIC);
-            failure.addBlock("FULL".getBytes(StandardCharsets.UTF_8));
-            tc.send(failure);
-        }catch (DayClosedException e){
-            Frame failure=new Frame(Frame.BASIC);
-            failure.addBlock("DAY CLOSED".getBytes(StandardCharsets.UTF_8));
-            tc.send(failure);
-        }
+        dataBase.addBooking(booking);
+        Frame success=new Frame(Frame.BASIC);
+        success.addBlock(booking.getBookingID().getBytes(StandardCharsets.UTF_8));
+        tc.send(success);
     }
 
-    private void allFlights(){
-        try{
-            Frame frame=new Frame(Frame.ALL_FLIGHTS);
-            Set<Flight> flights = dataBase.getDefaultFlights();
-            for(Flight f : flights){
-                frame.addBlock(f.createFrame().serialize());
-            }
-            tc.send(frame);
-        } catch (IOException e) {
-            e.printStackTrace();
+    private void allFlights() throws IOException {
+        Frame frame=new Frame(Frame.ALL_FLIGHTS);
+        Set<Flight> flights = dataBase.getDefaultFlights();
+        for(Flight f : flights){
+            frame.addBlock(f.createFrame().serialize());
         }
+        tc.send(frame);
     }
 
     public void sendCities()throws IOException{
@@ -133,25 +125,53 @@ public class ServerConnection implements Runnable, AutoCloseable{
         tc.send(frame);
     }
 
-    public void getAllBookingsFromAccount() throws IOException { // ta a meter tudo na mesma frame não sei se cabe
-        Frame frame = new Frame((Frame.ACCOUNT_FLIGHTS)); //Não sei o tipo ainda
+    public void getAllBookingsFromAccount() throws IOException {
+        Frame frame = new Frame(Frame.ACCOUNT_FLIGHTS);
         Set<String> set = dataBase.getAccount(loggedUser).getBookingsIds();
         for(String s : set){
-            for(Flight f : dataBase.getFlightsFromBooking(s)){
-                frame.addBlock(f.createFrame().serialize());
-            }
+            frame.addBlock(s.getBytes(StandardCharsets.UTF_8));
         }
         tc.send(frame);
     }
 
-    public void getNotificacoes(Frame frame) throws AccountException, IOException {
+    public void getNotificacoes(Frame frame) throws IOException, AccountException {
         Frame success=new Frame(Frame.NOTIF,new ArrayList<>());
-        if(!dataBase.checkAdmin(loggedUser)){
+        if (!dataBase.checkAdmin(loggedUser)) {
             Set<String> notif = dataBase.getNotificacoesCliente(loggedUser);
-            for(String not : notif)
+            for (String not : notif)
                 success.addBlock(not.getBytes(StandardCharsets.UTF_8));
         }
         tc.send(success);
+    }
+
+    public void cancelaBooking(Frame frame) throws IOException, DayClosedException, AccountException, BookingNotFound, WrongFrameTypeException {
+        Frame status = new Frame(Frame.BASIC,new ArrayList<>());
+        List<byte[]> resp = frame.getData();
+        if(resp.size() == 1){
+            dataBase.cancelBooking(loggedUser,new String(resp.get(0),StandardCharsets.UTF_8));
+            tc.send(status);
+        }else{
+            throw new WrongFrameTypeException();
+        }
+    }
+
+    public void trataErros(Exception e, Frame status){
+        if(e instanceof DayClosedException){
+            status.addBlock("D".getBytes(StandardCharsets.UTF_8));
+        }else if(e instanceof BookingNotFound){
+            status.addBlock("B".getBytes(StandardCharsets.UTF_8));
+        }else if(e instanceof AccountException){
+            status.addBlock("A".getBytes(StandardCharsets.UTF_8));
+        }else if(e instanceof FlightNotFoundException){
+            status.addBlock("Fn".getBytes(StandardCharsets.UTF_8));
+        }else if(e instanceof FlightFullException){
+            status.addBlock("Ff".getBytes(StandardCharsets.UTF_8));
+        }else if(e instanceof WrongCredencials) {
+            status.addBlock("L".getBytes(StandardCharsets.UTF_8));
+        }
+         else {
+             status.addBlock("?".getBytes(StandardCharsets.UTF_8)); // erro desconhecido
+        }
     }
 
     @Override
@@ -164,7 +184,7 @@ public class ServerConnection implements Runnable, AutoCloseable{
         }catch (EOFException eof){
             //nada
         }
-        catch (IOException | WrongFrameTypeException | AccountException | IncompatibleFlightsException | MaxFlightsException e) {
+        catch (IOException | WrongFrameTypeException e) {
             e.printStackTrace();
         }
     }

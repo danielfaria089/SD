@@ -16,7 +16,9 @@ public class Frame {
     public static final byte CITIES=(byte)6;
     public static final byte STOPOVERS=(byte)7;
     public static final byte NOTIF=(byte)8;
-    public static final byte END=(byte) 9;
+    public static final byte CANCEL=(byte)9;
+    // ...
+    public static final byte END=(byte) 10;
 
     private byte type;/*0 -> mensagem basica, 1 -> login, 2 -> flight, 3 -> trip,
                         4 -> allFlights, 5 -> AccountsFlights, 6 -> Cidades

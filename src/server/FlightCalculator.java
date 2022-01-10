@@ -22,7 +22,14 @@ public class FlightCalculator {
     private Lock l_r = l.readLock();
     public Lock l_w = l.writeLock();
 
+    public FlightCalculator(){
+        defaultFlights = new HashMap<>();
+        adjacencies = new HashMap<>();
+    }
+
     public FlightCalculator(String filename) throws IOException {
+        defaultFlights = new HashMap<>();
+        adjacencies = new HashMap<>();
         readFlights(filename);
     }
 
@@ -37,7 +44,7 @@ public class FlightCalculator {
         }
     }
 
-    private void writeFlights(String filename) throws IOException {
+    public void writeFlights(String filename) throws IOException {
         PrintWriter writer = new PrintWriter((new FileWriter(filename)));
         for(Flight f : defaultFlights.values()){
             writer.println(f.getId() + ";" +

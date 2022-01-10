@@ -111,22 +111,48 @@ public class DataBase {
             bookings.addDefaultFlight(flight);
     }
 
-    //FUNCIONALIDADE 4:É preciso ainda enviar as notificações
+    //FUNCIONALIDADE 4: DONE
 
-    public void cancelDay(LocalDate date){ // meter locks ainda
-        Set<String> cancelledBookings= bookings.cancelDay(date);
-        for(String notif : cancelledBookings){
-            String[] notificacao = notif.split(" ");
-            accounts.get(notificacao[0]).adicionarNotificacao(notificacao[1]);
+    public void cancelDay(LocalDate date){
+        Set<String> cancelledBookings= bookings.cancelDay(date,l_w);
+        try{
+            for(String notif : cancelledBookings){
+                String[] notificacao = notif.split(" ");
+                accounts.get(notificacao[0]).adicionarNotificacao(notificacao[1]);
+            }
+        }finally {
+            l_w.unlock();
         }
     }
 
     public void adicionarNotificacaoACliente(String id, String not){
-        accounts.get(id).adicionarNotificacao(not);
+        l_r.lock();
+        try{
+            Account c = accounts.get(id);
+            c.l.lock();
+            try {
+                c.adicionarNotificacao(not);
+            }finally {
+                c.l.unlock();
+            }
+        }finally {
+            l_r.unlock();
+        }
     }
 
     public Set<String> getNotificacoesCliente(String id){
-        return this.accounts.get(id).getNotifications(true);
+        l_r.lock();
+        try {
+            Account c = accounts.get(id);
+            c.l.lock();
+            try {
+                return c.getNotifications(true);
+            }finally {
+                c.l.unlock();
+            }
+        }finally {
+            l_r.unlock();
+        }
     }
 
     //FUNCIONALIDADE 5 mix ADICIONAL 1:
@@ -151,6 +177,7 @@ public class DataBase {
 
     public void cancelBooking(String bookingID,String clientID) throws BookingNotFound, DayClosedException, AccountException {
         bookings.cancelBooking(bookingID,clientID);
+        this.accounts.get(clientID).removeBooking(bookingID);
     }
 
     public List<Flight> getFlightsFromBooking(String id){
