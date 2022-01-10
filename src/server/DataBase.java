@@ -173,11 +173,29 @@ public class DataBase {
         bookings.addBooking(booking);
     }
 
+    public String registerBooking(String idCliente,List<String> percurso, LocalDate start, LocalDate end){ // Funcionalidade 5
+        if(start.isAfter(end)) return null;
+        List<LocalDate> dates = Stream.iterate(start, date -> date.plusDays(1))
+                .limit(ChronoUnit.DAYS.between(start, end))
+                .collect(Collectors.toList());
+        return bookings.getFirstBooking(idCliente,percurso,dates);
+    }
+
     //FUNCIONALIDADE 6:
 
     public void cancelBooking(String bookingID,String clientID) throws BookingNotFound, DayClosedException, AccountException {
-        bookings.cancelBooking(bookingID,clientID);
-        this.accounts.get(clientID).removeBooking(bookingID);
+        l_r.lock();
+        try {
+            bookings.cancelBooking(bookingID, clientID);
+        }finally {
+            l_w.lock();
+            l_r.unlock();
+        }
+        try {
+            this.accounts.get(clientID).removeBooking(bookingID);
+        }finally {
+            l_w.unlock();
+        }
     }
 
     public List<Flight> getFlightsFromBooking(String id){
@@ -185,7 +203,12 @@ public class DataBase {
     }
 
     public Account getAccount(String id){
-        return accounts.get(id).clone();
+        l_r.lock();
+        try {
+            return accounts.get(id).clone();
+        }finally {
+            l_r.unlock();
+        }
     }
 
     //FUNCIONALIDADE 7:

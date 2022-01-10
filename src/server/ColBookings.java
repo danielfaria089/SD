@@ -25,48 +25,110 @@ public class ColBookings {
 
     public ColBookings(FlightCalculator calculator) throws IOException {
         flightCalculator=calculator;
+        reservations = new HashMap<>();
+        flightsMap = new HashMap<>();
     }
 
     public Set<Booking> getPossibleBookings(String origin, String destination, List<LocalDate> dates){
-        Set<StopOvers> stopOversSet = flightCalculator.getFlights(origin,destination);
-        Set<Booking> bookings=new TreeSet<>(Comparator.comparing(Booking::getDate));
-        for(LocalDate date:dates){
-            Flights flights=flightsMap.get(date);
-            if(flights!=null&&!flights.isClosed()){
-                for(StopOvers stopOver:stopOversSet){
-                    boolean found=true;
-                    for(Flight f:stopOver.getStopOvers()){
-                        if(!flights.contains(f))found=false;
-                    }
-                    if(found){
-                        try{
-                            bookings.add(new Booking(date,stopOver.getStopOvers()));
-                        } catch (IncompatibleFlightsException | MaxFlightsException e) {
-                            e.printStackTrace();
+        l_r.lock();
+        try {
+            Set<StopOvers> stopOversSet = flightCalculator.getFlights(origin, destination);
+            Set<Booking> bookings = new TreeSet<>(Comparator.comparing(Booking::getDate));
+            for (LocalDate date : dates) {
+                Flights flights = flightsMap.get(date);
+                if (flights != null && !flights.isClosed()) {
+                    for (StopOvers stopOver : stopOversSet) {
+                        boolean found = true;
+                        for (Flight f : stopOver.getStopOvers()) {
+                            if (!flights.contains(f)) found = false;
+                        }
+                        if (found) {
+                            try {
+                                bookings.add(new Booking(date, stopOver.getStopOvers()));
+                            } catch (IncompatibleFlightsException | MaxFlightsException e) {
+                                e.printStackTrace();
+                            }
                         }
                     }
                 }
             }
+            return bookings;
+        }finally {
+            l_r.unlock();
         }
-        return bookings;
+
+    }
+
+    public String getFirstBooking(String idCliente,List<String> percurso, List<LocalDate> dates){
+        l_r.lock();
+        try {
+            for (LocalDate date : dates) {
+                Flights flights = flightsMap.get(date);
+                List<Flight> stopOvers = new ArrayList<>();
+                int i;
+                for (i = 1; i < percurso.size(); i++) {
+                    Flight f = flights.getFlight(percurso.get(i - 1),
+                                                 percurso.get(i));
+                    if (f == null) {
+                        break;
+                    }
+                    stopOvers.add(f);
+                }
+                l_w.lock();
+                try {
+                    if (i == percurso.size()) {
+                        Booking b = new Booking(idCliente, date, stopOvers);
+                        reservations.put(b.getBookingID(), b);
+                        flights.addPassenger(idCliente, stopOvers);
+                        return b.getBookingID();
+                    }
+                } catch (MaxFlightsException | IncompatibleFlightsException | FlightFullException e) {
+                    e.printStackTrace();
+                }finally {
+                    l_w.lock();
+                }
+            }
+            return null;
+        }finally {
+            l_r.unlock();
+        }
     }
 
     public void addBooking(Booking booking) throws FlightNotFoundException, DayClosedException, FlightFullException {
-        reservations.put(booking.getBookingID(),booking);
-        LocalDate date=booking.getDate();
-        if(!flightsMap.containsKey(date))flightsMap.put(date,new Flights(flightCalculator.getDefaultFlights()));
-        flightsMap.get(date).addBooking(booking);
+        l_w.lock();
+        try{
+            reservations.put(booking.getBookingID(), booking);
+            LocalDate date = booking.getDate();
+            if (!flightsMap.containsKey(date))
+                flightsMap.put(date, new Flights(flightCalculator.getDefaultFlights()));
+            flightsMap.get(date).addBooking(booking);
+        }finally {
+            l_w.unlock();
+        }
     }
 
 
     public void cancelBooking(String bookingID,String clientID) throws BookingNotFound, DayClosedException, AccountException {
-        if(!reservations.get(bookingID).getClientID().equals(clientID))throw new AccountException();
-        else {
-            Booking booking=reservations.remove(bookingID);
-            Flights flights=flightsMap.get(booking.getDate());
-            if(flights==null)throw new BookingNotFound();
-            else if(flights.isClosed())throw new DayClosedException();
-            else flights.cancelBooking(booking);
+        l_r.lock();
+        try{
+            if (!reservations.get(bookingID).getClientID().equals(clientID)) throw new AccountException();
+            else {
+                Booking booking = reservations.get(bookingID); // primeiro checkar
+                Flights flights = flightsMap.get(booking.getDate());
+                if (flights == null) throw new BookingNotFound();
+                else if (flights.isClosed()) throw new DayClosedException();
+                else {
+                    l_w.lock();
+                    try {
+                        reservations.remove(bookingID); // só depois remover
+                        flights.cancelBooking(booking);
+                    }finally {
+                        l_w.unlock();
+                    }
+                }
+            }
+        }finally {
+            l_r.unlock();
         }
     }
 
@@ -79,7 +141,12 @@ public class ColBookings {
     }
 
     public List<Flight> getFlightsFromBooking(String id){
-        return reservations.get(id).getStopOvers().getStopOvers();
+        l_r.lock();
+        try {
+            return reservations.get(id).getStopOvers().getStopOvers();
+        }finally {
+            l_r.unlock();
+        }
     }
 
     public void addDefaultFlight(Flight flight) throws FlightException {

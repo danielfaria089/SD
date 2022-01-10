@@ -64,6 +64,20 @@ public class Flights {
         return flights.containsKey(flight.getId());
     }
 
+    public Flight getFlight(String origin, String dest){
+        for(Flight f : flights.values()){
+            if(f.equals(origin,dest) && f.checkOccupation())
+                return f.clone();
+        }
+        return null;
+    }
+
+    public void addPassenger(String idCliente, List<Flight> stopOvers) throws FlightFullException {
+        for(Flight f : stopOvers){
+            flights.get(f.getId()).addPassenger(idCliente);
+        }
+    }
+
     //Adiciona um voo default
     public void addDefaultFlight(Flight flight){
         flights.put(flight.getId(),flight);
