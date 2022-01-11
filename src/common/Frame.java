@@ -20,9 +20,7 @@ public class Frame {
     // ...
     public static final byte END=(byte) 10;
 
-    private byte type;/*0 -> mensagem basica, 1 -> login, 2 -> flight, 3 -> trip,
-                        4 -> allFlights, 5 -> AccountsFlights, 6 -> Cidades
-                        */
+    private byte type;
     private List<byte[]> data;
 
     public Frame(){
@@ -63,8 +61,8 @@ public class Frame {
         return data.stream().map(a->Arrays.copyOf(a,a.length)).collect(Collectors.toList());
     }
 
-    public DataInputStream getDataDIS() throws IOException {
-        return new DataInputStream(new ByteArrayInputStream(serialize()));
+    public byte[] getDataAt(int index){
+        return data.get(index);
     }
 
     public static byte[] readBlock(DataInputStream inputStream) throws IOException {

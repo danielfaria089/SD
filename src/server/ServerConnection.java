@@ -6,10 +6,8 @@ import common.Frame;
 import common.*;
 
 import java.io.*;
-import java.net.SocketException;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.net.Socket;
@@ -67,7 +65,7 @@ public class ServerConnection implements Runnable, AutoCloseable{
         return true;
     }
 
-    private void login(Frame frame) throws IOException, WrongFrameTypeException, AccountException, WrongCredencials {
+    private void login(Frame frame) throws IOException, WrongFrameTypeException, AccountException, WrongCredentials {
         Credentials credentials=new Credentials(frame);
         if(dataBase.checkLogIn(credentials.getUsername(), credentials.getPassword())){
             loggedUser=credentials.getUsername();
@@ -85,13 +83,17 @@ public class ServerConnection implements Runnable, AutoCloseable{
             tc.send(success);
         }
         else{
-            throw new WrongCredencials();
+            throw new WrongCredentials();
         }
     }
 
     public void getPossibleBookings(Frame frame){
-        String origin=new String(frame.getData().get(0),StandardCharsets.UTF_8);
-        String destination=new String(frame.getData().get(1),StandardCharsets.UTF_8);
+        String origin=new String(frame.getDataAt(0),StandardCharsets.UTF_8);
+        String destination=new String(frame.getDataAt(1),StandardCharsets.UTF_8);
+
+        LocalDate date1=Helpers.localDateFromBytes(frame.getDataAt(2));
+        LocalDate date2=Helpers.localDateFromBytes(frame.getDataAt(3));
+        Set<Booking> bookings=dataBase.possibleBookings(origin,destination,date1,date2);
 
     }
 
@@ -166,7 +168,7 @@ public class ServerConnection implements Runnable, AutoCloseable{
             status.addBlock("Fn".getBytes(StandardCharsets.UTF_8));
         }else if(e instanceof FlightFullException){
             status.addBlock("Ff".getBytes(StandardCharsets.UTF_8));
-        }else if(e instanceof WrongCredencials) {
+        }else if(e instanceof WrongCredentials) {
             status.addBlock("L".getBytes(StandardCharsets.UTF_8));
         }
          else {

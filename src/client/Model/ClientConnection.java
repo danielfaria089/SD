@@ -45,7 +45,7 @@ public class ClientConnection {
         else throw new WrongFrameTypeException();
     }
 
-    public String reservation(LocalDate date,StopOvers stopOvers) throws IOException, WrongFrameTypeException, DayClosedException, FlightFullException, FlightNotFoundException, AccountException, WrongCredencials, UnknownError, BookingNotFound {
+    public String reservation(LocalDate date,StopOvers stopOvers) throws IOException, WrongFrameTypeException, DayClosedException, FlightFullException, FlightNotFoundException, AccountException, WrongCredentials, UnknownError, BookingNotFound {
         Frame frame=new Frame(Frame.BOOKING);
         frame.addBlock(Helpers.localDateToBytes(date));
         frame.addBlock(stopOvers.createFrame().serialize());
@@ -113,7 +113,7 @@ public class ClientConnection {
         return res;
     }
 
-    public void cancelaBooking(String bookingId) throws IOException, FlightNotFoundException, DayClosedException, AccountException, WrongCredencials, UnknownError, BookingNotFound, FlightFullException {
+    public void cancelaBooking(String bookingId) throws IOException, FlightNotFoundException, DayClosedException, AccountException, WrongCredentials, UnknownError, BookingNotFound, FlightFullException {
         Frame frame = new Frame(Frame.CANCEL);
         frame.addBlock(bookingId.getBytes(StandardCharsets.UTF_8));
         tc.send(frame);
@@ -124,7 +124,7 @@ public class ClientConnection {
         }
     }
 
-    public void trataErros(String erro) throws AccountException, BookingNotFound, DayClosedException, FlightNotFoundException, FlightFullException, WrongCredencials, UnknownError {
+    public void trataErros(String erro) throws AccountException, BookingNotFound, DayClosedException, FlightNotFoundException, FlightFullException, WrongCredentials, UnknownError {
         switch (erro){
             case "A":
                 throw new AccountException();
@@ -137,7 +137,7 @@ public class ClientConnection {
             case "Ff":
                 throw new FlightFullException();
             case "L":
-                throw new WrongCredencials();
+                throw new WrongCredentials();
             case "?":
                 throw new UnknownError();
             default:

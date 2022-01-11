@@ -8,7 +8,6 @@ import javax.swing.text.DateFormatter;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -33,6 +32,7 @@ public class ClientWindow extends Window{
 
 
         JButton reservation=new JButton("Book a Flight");
+        JButton stopOvers=new JButton("Book Specific Route");
         JButton flights=new JButton("Available Flights");
         JButton cancelation=new JButton("Cancel a Flight");
 
@@ -59,10 +59,20 @@ public class ClientWindow extends Window{
             components.add(new DupleCompPos(others(),BorderLayout.PAGE_END));
             setComponents(components);
         });
-        flights.addActionListener(e -> {
+        reservation.addActionListener(e -> {
             ArrayList<DupleCompPos> components;
             components= new ArrayList<>();
             components.add(new DupleCompPos(buttons(2),BorderLayout.PAGE_START));
+            components.add(new DupleCompPos(new JPanel(),BorderLayout.EAST));
+            components.add(new DupleCompPos(new JPanel(),BorderLayout.WEST));
+            components.add(new DupleCompPos(reservation(),BorderLayout.CENTER));
+            components.add(new DupleCompPos(others(),BorderLayout.PAGE_END));
+            setComponents(components);
+        });
+        flights.addActionListener(e -> {
+            ArrayList<DupleCompPos> components;
+            components= new ArrayList<>();
+            components.add(new DupleCompPos(buttons(3),BorderLayout.PAGE_START));
             components.add(new DupleCompPos(new JPanel(),BorderLayout.EAST));
             components.add(new DupleCompPos(new JPanel(),BorderLayout.WEST));
             components.add(new DupleCompPos(flights(),BorderLayout.CENTER));
@@ -72,21 +82,19 @@ public class ClientWindow extends Window{
         cancelation.addActionListener(e->{
             ArrayList<DupleCompPos> components;
             components= new ArrayList<>();
-            components.add(new DupleCompPos(buttons(3),BorderLayout.PAGE_START));
+            components.add(new DupleCompPos(buttons(4),BorderLayout.PAGE_START));
             components.add(new DupleCompPos(new JPanel(),BorderLayout.EAST));
             components.add(new DupleCompPos(new JPanel(),BorderLayout.WEST));
             components.add(new DupleCompPos(cancelation(),BorderLayout.CENTER));
             components.add(new DupleCompPos(others(),BorderLayout.PAGE_END));
             setComponents(components);
         });
-        reservation.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
-        flights.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
-        cancelation.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
         panel.add(reservation);
+        panel.add(stopOvers);
         panel.add(cancelation);
         panel.add(flights);
 
-        panel.setLayout(new FlowLayout());
+        panel.setLayout(new GridLayout());
         panel.setBorder(BorderFactory.createEmptyBorder(10,10,10,10));
         return panel;
     }
@@ -103,24 +111,74 @@ public class ClientWindow extends Window{
         JComboBox<String> cities2=new JComboBox<>(arrayCities);
         cities2.setEditable(true);
 
-        DateFormat format = new SimpleDateFormat("ddMMyyyy");
+        DateFormat format = new SimpleDateFormat("dd/MM/yyyy");
         DateFormatter df = new DateFormatter(format);
-        JFormattedTextField dateField = new JFormattedTextField(df);
-        dateField.setPreferredSize(new Dimension(100,20));
+        JFormattedTextField datefield1 = new JFormattedTextField(df);
+        JFormattedTextField datefield2 = new JFormattedTextField(df);
+
+        datefield1.setPreferredSize(new Dimension(100,20));
+        datefield2.setPreferredSize(new Dimension(100,20));
+
+        datefield1.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyTyped(KeyEvent key) {
+                char c=key.getKeyChar();
+                String text=datefield1.getText();
+                if(text.length()>=10)key.consume();
+                else{
+                    if((c >= '0') && (c <= '9') ){
+                        if(text.length()==2||text.length()==5)datefield1.setText(text+"/");
+                    }
+                    else if(c == KeyEvent.VK_BACK_SPACE){
+                        if(text.length()==3||text.length()==6)datefield1.setText(text.substring(0,text.length()-1));
+                    }
+                    else key.consume();
+                }
+            }
+        });
+
+        datefield2.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyTyped(KeyEvent key) {
+                char c=key.getKeyChar();
+                String text=datefield2.getText();
+                if(text.length()>=10)key.consume();
+                else{
+                    if((c >= '0') && (c <= '9') ){
+                        if(text.length()==2||text.length()==5)datefield2.setText(text+"/");
+                    }
+                    else if(c == KeyEvent.VK_BACK_SPACE){
+                        if(text.length()==3||text.length()==6)datefield2.setText(text.substring(0,text.length()-1));
+                    }
+                    else key.consume();
+                }
+            }
+        });
 
         JButton confirm=new JButton("Confirm");
         confirm.addActionListener(e->{
             if(cities1.getSelectedItem()!=null&&cities2.getSelectedItem()!=null){
-                System.out.println(cities1.getSelectedItem()+((String)cities2.getSelectedItem())+dateField.getText());
+                if(datefield1.getText().length()==10&&datefield2.getText().length()==10){
+                    System.out.println(cities1.getSelectedItem()+((String)cities2.getSelectedItem())+datefield1.getText()+datefield2.getText());
+                }
+                else popupMessage("Insert date range",WARNING);
             }
         });
 
         addToGridBag(panel,cities1,c,0,0,1,1,new Insets(0,0,0,0),GridBagConstraints.CENTER);
         addToGridBag(panel,cities2,c,1,0,1,1,new Insets(0,0,0,0),GridBagConstraints.CENTER);
-        addToGridBag(panel,dateField,c,2,0,1,1,new Insets(0,0,0,0),GridBagConstraints.CENTER);
+        addToGridBag(panel,datefield1,c,2,0,1,1,new Insets(0,0,0,0),GridBagConstraints.CENTER);
+        addToGridBag(panel,datefield2,c,3,0,1,1,new Insets(0,0,0,0),GridBagConstraints.CENTER);
 
-        addToGridBag(panel,new JLabel("   "),c,0,1,2,1,new Insets(10,0,0,0),GridBagConstraints.CENTER);
+        addToGridBag(panel,new JLabel("   "),c,0,1,3,1,new Insets(10,0,0,0),GridBagConstraints.CENTER);
         addToGridBag(panel,confirm,c,2,1,1,1,new Insets(10,0,0,0),GridBagConstraints.CENTER);
+
+        panel.setBorder(borderCreator("Flight Booking"));
+        return panel;
+    }
+
+    private JPanel stopOvers(){
+        JPanel panel=new JPanel();
 
 
         return panel;
