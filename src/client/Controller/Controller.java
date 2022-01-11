@@ -21,11 +21,12 @@ public class Controller {
         return connection.login(username,password);
     }
     
-    /*
+
     public String[] getCityNames(){
-        return connection.getCities().toArray(new String[0]);
+        //return connection.getCities().toArray(new String[0]);
+        return null;
     }
 
-    */
+
 
 }
