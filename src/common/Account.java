@@ -10,7 +10,7 @@ public class Account {
     private char[] password;
     private boolean admin;//true=admin  false==client
     private Set<String> bookings;
-    private Set<String> notifications;  //Not sure se vamos usar isto
+    private Set<String> notifications;
 
     public Lock l = new ReentrantLock();
 
