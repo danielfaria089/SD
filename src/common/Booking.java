@@ -30,6 +30,13 @@ public class Booking {
         stopOvers=new StopOvers();
     }
 
+    public Booking(String bookingID, String clientID, LocalDate date,List<Flight> stopOvers) throws MaxFlightsException, IncompatibleFlightsException {
+        this.bookingID = bookingID;
+        this.clientID = clientID;
+        this.date = date;
+        this.stopOvers=new StopOvers(stopOvers);
+    }
+
     //Construtor com escalas
     public Booking(String clientID,LocalDate date,List<Flight> stopOvers) throws IncompatibleFlightsException, MaxFlightsException {
         bookingID=Helpers.randomString();

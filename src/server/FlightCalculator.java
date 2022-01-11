@@ -79,6 +79,10 @@ public class FlightCalculator {
        }
     }
 
+    public Flight getDefaultFlight(String id){
+        return defaultFlights.get(id);
+    }
+
     public void addDefaultFlight(Flight flight) throws FlightException {
         if(defaultFlights.containsKey(flight.getId()))throw new FlightException();
         else{

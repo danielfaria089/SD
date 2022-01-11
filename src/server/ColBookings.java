@@ -6,8 +6,9 @@ import common.Exceptions.*;
 import common.Flight;
 import common.StopOvers;
 
-import java.io.IOException;
+import java.io.*;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -201,4 +202,30 @@ public class ColBookings {
         return flightCalculator.getDefaultFlights();
     }
 
+    private void readBookings(String filename) throws IOException, FlightNotFoundException, DayClosedException, FlightFullException, MaxFlightsException, IncompatibleFlightsException {
+        BufferedReader reader = new BufferedReader((new FileReader(filename)));
+        String line;
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d/MM/yyyy");
+        while ((line = reader.readLine())!=null){
+            String[] strings = line.split(";");
+            List<Flight> flights = new ArrayList<>();
+            for(int i = 3; i < strings.length; i++){
+                flights.add(flightCalculator.getDefaultFlight(strings[i]));
+            }
+            Booking a = new Booking(strings[0], strings[1],LocalDate.parse(strings[2], formatter),flights);
+            addBooking(a);
+        }
+    }
+
+    public void writeFlights(String filename) throws IOException {
+        PrintWriter writer = new PrintWriter((new FileWriter(filename)));
+        for(Booking b : reservations.values()){
+            writer.println(b.getBookingID() + ";" +
+                    b.getClientID() + ";" +
+                    b.getDate() + ";" +
+                    b.getStopOvers());
+        }
+        writer.flush();
+        writer.close();
+    }
 }
