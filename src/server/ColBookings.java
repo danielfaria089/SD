@@ -219,10 +219,11 @@ public class ColBookings {
     public void writeFlights(String filename) throws IOException {
         PrintWriter writer = new PrintWriter((new FileWriter(filename)));
         for(Booking b : reservations.values()){
+            List<Flight> aux = new ArrayList<>(b.getStopOvers().getStopOvers());
             writer.println(b.getBookingID() + ";" +
                     b.getClientID() + ";" +
                     b.getDate() + ";" +
-                    b.getStopOvers());
+                    aux);
         }
         writer.flush();
         writer.close();
