@@ -1,14 +1,10 @@
 package common;
 
-import common.Frame;
-
 import java.io.*;
 import java.net.Socket;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class TaggedConnection implements AutoCloseable {
     private final DataInputStream in;
@@ -34,7 +30,13 @@ public class TaggedConnection implements AutoCloseable {
     }
 
     public void send(Frame frame) throws IOException {
-        send(frame.getType(), frame.getData());
+        w_lock.lock();
+        try {
+            out.write(frame.serialize());
+            out.flush();
+        }finally {
+            w_lock.unlock();
+        }
     }
 
     public void send(byte tag, List<byte[]> dataN) throws IOException {

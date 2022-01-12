@@ -1,17 +1,8 @@
 package server;
 
-import common.Booking;
-import common.Exceptions.AccountException;
-import common.Flight;
-import common.Frame;
 import common.Helpers;
-
-import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
 
 public class Server {
 
@@ -20,13 +11,10 @@ public class Server {
     public static void main(String[] args) throws Exception {
         ServerSocket ss = new ServerSocket(Helpers.PORT);
         DataBase db = new DataBase();
-        db.addClient("ola", new char[]{'1', '2', '3'});
-        db.adicionarNotificacaoACliente("ola","cona cona cona cona cona");
-;
+
         while(true) {
             Socket s = ss.accept();
             ServerConnection sc = new ServerConnection(s,db);
-
 
             for (int i = 0; i < WORKERS_PER_CONNECTION; ++i)
                 new Thread(sc).start();

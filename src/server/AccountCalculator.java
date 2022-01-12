@@ -1,7 +1,6 @@
 package server;
 
 import common.Account;
-import common.Flight;
 
 import java.io.*;
 import java.util.*;

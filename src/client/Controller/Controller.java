@@ -2,12 +2,7 @@ package client.Controller;
 
 import client.Model.ClientConnection;
 import common.Exceptions.WrongFrameTypeException;
-import common.Flight;
-import common.StopOvers;
-
 import java.io.IOException;
-import java.time.LocalDate;
-import java.util.List;
 
 public class Controller {
 
@@ -22,9 +17,9 @@ public class Controller {
     }
     
 
-    public String[] getCityNames(){
+    public String[] getCityNames() throws IOException {
         //return connection.getCities().toArray(new String[0]);
-        return null;
+        return connection.getCities().toArray(new String[0]);
     }
 
 

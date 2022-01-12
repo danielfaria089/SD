@@ -2,7 +2,6 @@ package common;
 
 import common.Exceptions.WrongFrameTypeException;
 
-import javax.swing.*;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;

@@ -1,7 +1,5 @@
 package client.Model;
 
-import java.net.Socket;
-import java.sql.Struct;
 import java.util.Arrays;
 
 public class ThreadedClient {

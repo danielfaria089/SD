@@ -13,6 +13,8 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 public class ClientConnection {
     private TaggedConnection tc;
@@ -43,6 +45,20 @@ public class ClientConnection {
             else return new String[]{"-1"};
         }
         else throw new WrongFrameTypeException();
+    }
+
+    public Set<String> getCities() throws IOException {
+        Set<String> cities=new TreeSet<>();
+        Frame frame=new Frame(Frame.CITIES);
+        tc.send(frame);
+        Frame response=tc.receive();
+        if(response.getType()==Frame.CITIES){
+            List<byte[]> data=response.getData();
+            for(byte[] block:data){
+                cities.add(new String(block,StandardCharsets.UTF_8));
+            }
+        }
+        return cities;
     }
 
     public String reservation(LocalDate date,StopOvers stopOvers) throws IOException, WrongFrameTypeException, DayClosedException, FlightFullException, FlightNotFoundException, AccountException, WrongCredentials, UnknownError, BookingNotFound {

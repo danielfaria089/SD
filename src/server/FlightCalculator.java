@@ -1,7 +1,6 @@
 package server;
 
 import common.Exceptions.FlightException;
-import common.Exceptions.FlightNotFoundException;
 import common.Exceptions.IncompatibleFlightsException;
 import common.Exceptions.MaxFlightsException;
 import common.Flight;

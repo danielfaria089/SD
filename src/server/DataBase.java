@@ -18,7 +18,7 @@ import java.util.stream.Stream;
 
 public class DataBase {
 
-    private static final String FLIGHTS_FILE="Flights.txt";
+    private static final String FLIGHTS_FILE="src/server/Files/Flights";
 
     private ColBookings bookings;
     private Map<String, Account> accounts;
