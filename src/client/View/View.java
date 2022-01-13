@@ -6,8 +6,12 @@ import client.View.GUI.ClientWindow;
 import client.View.GUI.Window;
 import common.Helpers;
 
+import javax.swing.text.DateFormatter;
 import java.awt.*;
 import java.io.IOException;
+import java.text.DateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 public class View {
 
@@ -20,27 +24,9 @@ public class View {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
 }
 
 /*
-
-*/
-
-
-
-/*
-    try{
-            ClientConnection connection=new ClientConnection(Helpers.IP, Helpers.PORT);
-            Model model=new Model();
-            Controller controller=new Controller(model);
-            Window teste=new ClientWindow(controller,new Dimension(600,400));
-            teste.show();
-        }catch (IOException e) {
-            e.printStackTrace();
-        }
-
-
 
 */

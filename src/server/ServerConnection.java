@@ -40,12 +40,13 @@ public class ServerConnection implements Runnable, AutoCloseable{
                     allFlights();//Recebe uma trip e regista os voos
                     break;
                 case Frame.ACCOUNT_FLIGHTS:
-                    getAllBookingsFromAccount(); break;
+                    getAllBookingsFromAccount();
+                    break;
                 case Frame.CITIES:
                     sendCities();//Envia a lista de cidades
                     break;
                 case Frame.STOPOVERS:
-
+                    sendPossibleBookings(frame);
                     break;
                 case Frame.NOTIF:
                     getNotificacoes(frame); // envia notificacoes de cancelamento
@@ -87,7 +88,7 @@ public class ServerConnection implements Runnable, AutoCloseable{
         }
     }
 
-    public void getPossibleBookings(Frame frame){
+    public void sendPossibleBookings(Frame frame) throws IOException {
         String origin=new String(frame.getDataAt(0),StandardCharsets.UTF_8);
         String destination=new String(frame.getDataAt(1),StandardCharsets.UTF_8);
 
@@ -95,17 +96,32 @@ public class ServerConnection implements Runnable, AutoCloseable{
         LocalDate date2=Helpers.localDateFromBytes(frame.getDataAt(3));
         Set<Booking> bookings=dataBase.possibleBookings(origin,destination,date1,date2);
 
+        for(Booking book:bookings){
+            frame.addBlock(Helpers.localDateToBytes(book.getDate()));
+            frame.addBlock(book.getStopOvers().createFrame().serialize());
+        }
+
+        tc.send(frame);
     }
 
     //Frame que recebe: (byte)Type :(0) (LocalDate)data -> (1) (Trip)viagem
-    private void reservation(Frame frame) throws IOException, IncompatibleFlightsException, MaxFlightsException, WrongFrameTypeException, FlightNotFoundException, DayClosedException, FlightFullException {
-        List<byte[]>data=frame.getData();
-        LocalDate date=LocalDate.parse(new String(data.get(0),StandardCharsets.UTF_8));
-        StopOvers stopOvers =new StopOvers(new Frame(data.get(1)));
-        Booking booking=new Booking(loggedUser,date,stopOvers.getStopOvers());
-        dataBase.addBooking(booking);
+    private void reservation(Frame frame) throws IOException, WrongFrameTypeException{
+        LocalDate date=Helpers.localDateFromBytes(frame.getDataAt(0));
+        StopOvers stopOvers=new StopOvers(new Frame(frame.getDataAt(1)));
+
+        Booking booking=new Booking(loggedUser,date,stopOvers);
+
         Frame success=new Frame(Frame.BASIC);
-        success.addBlock(booking.getBookingID().getBytes(StandardCharsets.UTF_8));
+        try{
+            dataBase.addBooking(booking);
+            success.addBlock(booking.getBookingID().getBytes(StandardCharsets.UTF_8));
+        } catch (FlightNotFoundException e) {
+            success.addBlock("Fn".getBytes(StandardCharsets.UTF_8));
+        } catch (FlightFullException e) {
+            success.addBlock("Ff".getBytes(StandardCharsets.UTF_8));
+        } catch (DayClosedException e){
+            success.addBlock("D".getBytes(StandardCharsets.UTF_8));
+        }
         tc.send(success);
     }
 

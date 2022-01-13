@@ -97,4 +97,17 @@ public class StopOvers {
         }
         return 0;
     }
+
+    public StopOvers clone(){
+        return new StopOvers(this);
+    }
+
+    public String toString(){
+        StringBuilder sb=new StringBuilder();
+        if(stopOvers.size()>=1)sb.append(stopOvers.get(0).getOrigin());
+        for(Flight f:stopOvers){
+            sb.append(" -> ").append(f.getDestination());
+        }
+        return sb.toString();
+    }
 }

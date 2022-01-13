@@ -61,7 +61,27 @@ public class ClientConnection {
         return cities;
     }
 
-    public String reservation(LocalDate date,StopOvers stopOvers) throws IOException, WrongFrameTypeException, DayClosedException, FlightFullException, FlightNotFoundException, AccountException, WrongCredentials, UnknownError, BookingNotFound {
+    public List<Pair<LocalDate,StopOvers>> getPossibleBookings(String city1,String city2,LocalDate date1,LocalDate date2) throws IOException {
+        Frame frame=new Frame(Frame.STOPOVERS);
+        frame.addBlock(city1.getBytes(StandardCharsets.UTF_8));
+        frame.addBlock(city2.getBytes(StandardCharsets.UTF_8));
+        frame.addBlock(Helpers.localDateToBytes(date1));
+        frame.addBlock(Helpers.localDateToBytes(date2));
+        tc.send(frame);
+        Frame response=tc.receive();
+        List<Pair<LocalDate,StopOvers>> possibleBooks=new ArrayList<>();
+        List<byte[]>data=response.getData();
+        try{
+            for(int i=0;i<data.size();i+=2){
+                possibleBooks.add(new Pair<>(Helpers.localDateFromBytes(data.get(i)),new StopOvers(new Frame(data.get(i+1)))));
+            }
+        } catch (WrongFrameTypeException e) {
+            tc.send(frame);
+        }
+        return possibleBooks;
+    }
+
+    public String reservation(StopOvers stopOvers,LocalDate date) throws IOException, WrongFrameTypeException, DayClosedException, FlightFullException, FlightNotFoundException, AccountException, WrongCredentials, UnknownError, BookingNotFound {
         Frame frame=new Frame(Frame.BOOKING);
         frame.addBlock(Helpers.localDateToBytes(date));
         frame.addBlock(stopOvers.createFrame().serialize());

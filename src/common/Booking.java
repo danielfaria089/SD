@@ -3,7 +3,9 @@ package common;
 import common.Exceptions.IncompatibleFlightsException;
 import common.Exceptions.MaxFlightsException;
 
-import javax.security.sasl.SaslServer;
+import java.awt.print.Book;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
@@ -23,11 +25,11 @@ public class Booking {
         this.stopOvers=new StopOvers(stopOvers);
     }
 
-    public Booking(String clientID,LocalDate date){
+    public Booking(String clientID,LocalDate date,StopOvers stopOvers){
         bookingID = Helpers.randomString();
         this.clientID=clientID;
         this.date=date;
-        stopOvers=new StopOvers();
+        this.stopOvers=stopOvers.clone();
     }
 
     public Booking(String bookingID, String clientID, LocalDate date,List<Flight> stopOvers) throws MaxFlightsException, IncompatibleFlightsException {
@@ -83,5 +85,17 @@ public class Booking {
 
     public String createNotification(){
         return clientID + " " + bookingID;
+    }
+
+    public Frame createFrame() throws IOException {
+        Frame frame=new Frame(Frame.BOOKING);
+        frame.addBlock(bookingID.getBytes(StandardCharsets.UTF_8));
+        frame.addBlock(Helpers.localDateToBytes(date));
+        frame.addBlock(stopOvers.createFrame().serialize());
+        return frame;
+    }
+
+    public void readFrame(Booking booking){
+
     }
 }

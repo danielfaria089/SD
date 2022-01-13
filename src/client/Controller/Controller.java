@@ -1,8 +1,14 @@
 package client.Controller;
 
 import client.Model.ClientConnection;
-import common.Exceptions.WrongFrameTypeException;
+import common.Exceptions.*;
+import common.Exceptions.UnknownError;
+import common.Pair;
+import common.StopOvers;
+
 import java.io.IOException;
+import java.time.LocalDate;
+import java.util.List;
 
 public class Controller {
 
@@ -15,13 +21,17 @@ public class Controller {
     public String[] login(String username,char[]password) throws IOException, WrongFrameTypeException {
         return connection.login(username,password);
     }
-    
 
     public String[] getCityNames() throws IOException {
-        //return connection.getCities().toArray(new String[0]);
         return connection.getCities().toArray(new String[0]);
     }
 
+    public List<Pair<LocalDate,StopOvers>> getPossibleBookings(String orig, String dest, LocalDate dateBegin, LocalDate dateEnd) throws IOException {
+        List<Pair<LocalDate,StopOvers>> list=connection.getPossibleBookings(orig, dest, dateBegin, dateEnd);
+        return list;
+    }
 
-
+    public String reservation(StopOvers stopOvers,LocalDate date) throws IOException, BookingNotFound, FlightNotFoundException, WrongCredentials, FlightFullException, WrongFrameTypeException, DayClosedException, AccountException, UnknownError {
+        return connection.reservation(stopOvers,date);
+    }
 }
