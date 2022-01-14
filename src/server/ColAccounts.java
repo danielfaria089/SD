@@ -8,7 +8,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-public class AccountCalculator {
+public class ColAccounts {
     private Map<String, Account> accounts;
     private Map<String, Account> admins;
 
@@ -16,12 +16,12 @@ public class AccountCalculator {
     private Lock l_r = l.readLock();
     public Lock l_w = l.writeLock();
 
-    public AccountCalculator(){
+    public ColAccounts(){
         this.accounts = new HashMap<>();
         this.admins = new HashMap<>();
     }
 
-    public AccountCalculator(String filename) throws IOException {
+    public ColAccounts(String filename) throws IOException {
         this.accounts = new HashMap<>();
         this.admins = new HashMap<>();
         readAccounts(filename);
