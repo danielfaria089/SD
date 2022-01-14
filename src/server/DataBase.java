@@ -19,6 +19,8 @@ import java.util.stream.Stream;
 public class DataBase {
 
     private static final String FLIGHTS_FILE="src/server/Files/Flights";
+    private static final String ACCOUNTS_FILE="src/server/Files/Accounts";
+    private static final String BOOKING_FILE="src/server/Files/Bookings";
 
     private ColBookings bookings;
     private Map<String, Account> accounts;
@@ -31,8 +33,9 @@ public class DataBase {
     public DataBase(){
         try{
             accounts=new HashMap<>();
-            bookings=new ColBookings(new FlightCalculator(FLIGHTS_FILE));
-        } catch (IOException e) {
+            readAccounts(ACCOUNTS_FILE);
+            bookings=new ColBookings(new FlightCalculator(FLIGHTS_FILE),BOOKING_FILE);
+        } catch (IOException | FlightNotFoundException | DayClosedException | MaxFlightsException | IncompatibleFlightsException | FlightFullException e) {
             e.printStackTrace();
         }
     }
@@ -224,6 +227,48 @@ public class DataBase {
         bookings.clearOldFlights();
     }
 
+    private void readAccounts(String filename) throws IOException {
+        BufferedReader reader = new BufferedReader((new FileReader(filename)));
+        String line;
+        while ((line = reader.readLine())!=null){
+            String[] strings = line.split(";");
+            boolean b = Boolean.parseBoolean(strings[2]);
+            Account a = new Account(strings[0],strings[1].toCharArray(),b);
+            for(int i = 3; i<strings.length; i++){
+                a.addBooking(strings[i]);
+            }
+            accounts.put(a.getUsername(),a);
+        }
+    }
+
+    public void writeAccounts(String filename) throws IOException {
+        PrintWriter writer = new PrintWriter((new FileWriter(filename)));
+        for(Account a : accounts.values()){
+            StringBuilder strings = new StringBuilder();
+            for(String s : a.getBookingsIds()){
+                strings.append(";");
+                strings.append(s);
+            }
+            StringBuilder strings2 = new StringBuilder();
+            for(char c : a.getPassword()){
+                strings2.append(c);
+            }
+            writer.println(a.getUsername() + ";" +
+                    strings2 + ";" +
+                    a.isAdmin() +
+                    strings.toString()) ;
+        }
+        writer.flush();
+        writer.close();
+    }
+
+    public void writeBookings(String filename) throws IOException {
+        bookings.writeBookings(filename);
+    }
+
+    public void writeFlights(String filename) throws IOException {
+        bookings.writeFlights(filename);
+    }
 }
 
 /*
