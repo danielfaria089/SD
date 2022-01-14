@@ -31,6 +31,10 @@ public class Controller {
         return list;
     }
 
+    public String specificReservation(List<String> stopOvers,LocalDate dateBegin,LocalDate dateEnd){
+
+    }
+
     public String reservation(StopOvers stopOvers,LocalDate date) throws IOException, BookingNotFound, FlightNotFoundException, WrongCredentials, FlightFullException, WrongFrameTypeException, DayClosedException, AccountException, UnknownError {
         return connection.reservation(stopOvers,date);
     }

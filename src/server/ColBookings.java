@@ -32,22 +32,20 @@ public class ColBookings {
     public Set<Booking> getPossibleBookings(String origin, String destination, List<LocalDate> dates){
         l_r.lock();
         try {
-            Set<StopOvers> stopOversSet = flightCalculator.getFlights(origin, destination);
+            List<StopOvers> stopOversList = flightCalculator.getFlights(origin, destination);
             Set<Booking> bookings = new TreeSet<>(Comparator.comparing(Booking::getDate));
             for (LocalDate date : dates) {
+                if(!flightsMap.containsKey(date)) {
+                    flightsMap.put(date, new Flights(flightCalculator.getDefaultFlights()));
+                }
                 Flights flights = flightsMap.get(date);
-                if (flights != null && !flights.isClosed()) {
-                    for (StopOvers stopOver : stopOversSet) {
-                        boolean found = true;
-                        for (Flight f : stopOver.getStopOvers()) {
-                            if (!flights.contains(f)) found = false;
-                        }
-                        if (found) {
-                            try {
-                                bookings.add(new Booking(date, stopOver.getStopOvers()));
-                            } catch (IncompatibleFlightsException | MaxFlightsException e) {
-                                e.printStackTrace();
-                            }
+                if (flights!=null&&!flights.isClosed()) {
+                    for (StopOvers stopOver : stopOversList) {
+                        if(flights.containsAll(stopOver.getStopOvers()))
+                        try {
+                            bookings.add(new Booking(date, stopOver.getStopOvers()));
+                        } catch (IncompatibleFlightsException | MaxFlightsException e) {
+                            e.printStackTrace();
                         }
                     }
                 }
