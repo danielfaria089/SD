@@ -20,6 +20,7 @@ public class DataBase {
 
     private static final String FLIGHTS_FILE="src/server/Files/Flights";
     private static final String ACCOUNTS_FILE="src/server/Files/Accounts";
+    private static final String BOOKING_FILE="src/server/Files/Bookings";
 
     private ColBookings bookings;
     private Map<String, Account> accounts;
@@ -33,8 +34,8 @@ public class DataBase {
         try{
             accounts=new HashMap<>();
             readAccounts(ACCOUNTS_FILE);
-            bookings=new ColBookings(new FlightCalculator(FLIGHTS_FILE));
-        } catch (IOException e) {
+            bookings=new ColBookings(new FlightCalculator(FLIGHTS_FILE),BOOKING_FILE);
+        } catch (IOException | FlightNotFoundException | DayClosedException | MaxFlightsException | IncompatibleFlightsException | FlightFullException e) {
             e.printStackTrace();
         }
     }

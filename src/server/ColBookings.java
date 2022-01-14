@@ -23,10 +23,11 @@ public class ColBookings {
     private Lock l_w = l.writeLock();
     private Lock l_r = l.readLock();
 
-    public ColBookings(FlightCalculator calculator) throws IOException {
+    public ColBookings(FlightCalculator calculator, String filename) throws IOException, FlightNotFoundException, DayClosedException, MaxFlightsException, IncompatibleFlightsException, FlightFullException {
         flightCalculator=calculator;
         reservations = new HashMap<>();
         flightsMap = new HashMap<>();
+        readBookings(filename);
     }
 
     public Set<Booking> getPossibleBookings(String origin, String destination, List<LocalDate> dates){
@@ -203,7 +204,7 @@ public class ColBookings {
     private void readBookings(String filename) throws IOException, FlightNotFoundException, DayClosedException, FlightFullException, MaxFlightsException, IncompatibleFlightsException {
         BufferedReader reader = new BufferedReader((new FileReader(filename)));
         String line;
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d/MM/yyyy");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         while ((line = reader.readLine())!=null){
             String[] strings = line.split(";");
             List<Flight> flights = new ArrayList<>();
