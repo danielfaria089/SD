@@ -174,7 +174,7 @@ public class DataBase {
         bookings.addBooking(booking);
     }
 
-    public String registerBooking(String idCliente,List<String> percurso, LocalDate start, LocalDate end){ // Funcionalidade 5
+    public String registerBooking(String idCliente,List<String> percurso, LocalDate start, LocalDate end) throws DayClosedException, MaxFlightsException, FlightFullException, IncompatibleFlightsException, FlightNotFoundException { // Funcionalidade 5
         if(start.isAfter(end)) return null;
         List<LocalDate> dates = Stream.iterate(start, date -> date.plusDays(1))
                 .limit(ChronoUnit.DAYS.between(start, end))

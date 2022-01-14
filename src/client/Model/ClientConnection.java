@@ -81,7 +81,7 @@ public class ClientConnection {
         return possibleBooks;
     }
 
-    public String specificReservation(List<String>stopOvers,LocalDate dateBegin,LocalDate dateEnd) throws IOException, UnknownError, FlightNotFoundException, FlightFullException, WrongCredentials, AccountException, BookingNotFound, DayClosedException, WrongFrameTypeException {
+    public String specificReservation(List<String>stopOvers,LocalDate dateBegin,LocalDate dateEnd) throws IOException, UnknownError, FlightNotFoundException, FlightFullException, WrongCredentials, AccountException, BookingNotFound, DayClosedException, WrongFrameTypeException, MaxFlightsException, IncompatibleFlightsException {
         Frame frame=new Frame(Frame.SPEC_BOOK);
         frame.addBlock(Helpers.localDateToBytes(dateBegin));
         frame.addBlock(Helpers.localDateToBytes(dateEnd));
@@ -98,7 +98,7 @@ public class ClientConnection {
         else throw new WrongFrameTypeException();
     }
 
-    public String reservation(StopOvers stopOvers,LocalDate date) throws IOException, WrongFrameTypeException, DayClosedException, FlightFullException, FlightNotFoundException, AccountException, WrongCredentials, UnknownError, BookingNotFound {
+    public String reservation(StopOvers stopOvers,LocalDate date) throws IOException, WrongFrameTypeException, DayClosedException, FlightFullException, FlightNotFoundException, AccountException, WrongCredentials, UnknownError, BookingNotFound, MaxFlightsException, IncompatibleFlightsException {
         Frame frame=new Frame(Frame.BOOKING);
         frame.addBlock(Helpers.localDateToBytes(date));
         frame.addBlock(stopOvers.createFrame().serialize());
@@ -119,28 +119,14 @@ public class ClientConnection {
 
         Frame response = tc.receive();
         if(response.getType()==Frame.ALL_FLIGHTS){
-            for(byte[] b : frame.getData()){
+            for(byte[] b : response.getData()){
                 flights.add(new Flight(new Frame(b)));
             }
         }
         return flights;
     }
 
-    public List<String> allCities() throws IOException {
-        Frame frame = new Frame(Frame.CITIES);
-        List<String> ret = new ArrayList<>();
-        tc.send(frame);
-        Frame response = tc.receive();
-        if(response.getType()==Frame.CITIES){
-            for(byte[] b : response.getData()){
-                String aux = new String(b,StandardCharsets.UTF_8);
-                ret.add(aux);
-            }
-        }
-        return ret;
-    }
-
-    public List<String> getBookingsFromAccount() throws IOException, WrongFrameTypeException {
+    public List<String> getBookingsFromAccount() throws IOException{
         Frame frame = new Frame(Frame.ACCOUNT_FLIGHTS);
         List<String> bookings = new ArrayList<>();
         tc.send(frame);
@@ -193,7 +179,7 @@ public class ClientConnection {
         }
     }
 
-    public void cancelaBooking(String bookingId) throws IOException, FlightNotFoundException, DayClosedException, AccountException, WrongCredentials, UnknownError, BookingNotFound, FlightFullException {
+    public void cancelaBooking(String bookingId) throws IOException, FlightNotFoundException, DayClosedException, AccountException, WrongCredentials, UnknownError, BookingNotFound, FlightFullException, MaxFlightsException, IncompatibleFlightsException {
         Frame frame = new Frame(Frame.CANCEL);
         frame.addBlock(bookingId.getBytes(StandardCharsets.UTF_8));
         tc.send(frame);
@@ -204,7 +190,7 @@ public class ClientConnection {
         }
     }
 
-    public void trataErros(String erro) throws AccountException, BookingNotFound, DayClosedException, FlightNotFoundException, FlightFullException, WrongCredentials, UnknownError {
+    public void trataErros(String erro) throws AccountException, BookingNotFound, DayClosedException, FlightNotFoundException, FlightFullException, WrongCredentials, UnknownError, MaxFlightsException, IncompatibleFlightsException {
         switch (erro){
             case "A":
                 throw new AccountException();
@@ -218,6 +204,10 @@ public class ClientConnection {
                 throw new FlightFullException();
             case "L":
                 throw new WrongCredentials();
+            case "M":
+                throw new MaxFlightsException();
+            case "I":
+                throw new IncompatibleFlightsException();
             case "?":
                 throw new UnknownError();
             default:

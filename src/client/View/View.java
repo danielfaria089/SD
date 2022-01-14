@@ -22,6 +22,7 @@ public class View {
             ClientConnection connection=new ClientConnection(Helpers.IP,Helpers.PORT);
             Controller controller=new Controller(connection);
             Window window=new LoginWindow(controller);
+
             window.show();
         } catch (IOException e) {
             e.printStackTrace();

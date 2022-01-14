@@ -3,12 +3,14 @@ package client.Controller;
 import client.Model.ClientConnection;
 import common.Exceptions.*;
 import common.Exceptions.UnknownError;
+import common.Flight;
 import common.Pair;
 import common.StopOvers;
 
 import java.io.IOException;
 import java.time.DateTimeException;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 public class Controller {
@@ -39,15 +41,26 @@ public class Controller {
     }
 
     public List<Pair<LocalDate,StopOvers>> getPossibleBookings(String orig, String dest, LocalDate dateBegin, LocalDate dateEnd) throws IOException {
-        List<Pair<LocalDate,StopOvers>> list=connection.getPossibleBookings(orig, dest, dateBegin, dateEnd);
-        return list;
+        return connection.getPossibleBookings(orig, dest, dateBegin, dateEnd);
     }
 
-    public String specificReservation(List<String> stopOvers,LocalDate dateBegin,LocalDate dateEnd){
-        return null;
+    public String specificReservation(List<String> stopOvers,LocalDate dateBegin,LocalDate dateEnd) throws IOException, BookingNotFound, FlightNotFoundException, WrongCredentials, DayClosedException, WrongFrameTypeException, FlightFullException, AccountException, UnknownError, MaxFlightsException, IncompatibleFlightsException {
+        return connection.specificReservation(stopOvers, dateBegin, dateEnd);
     }
 
-    public String reservation(StopOvers stopOvers,LocalDate date) throws IOException, BookingNotFound, FlightNotFoundException, WrongCredentials, FlightFullException, WrongFrameTypeException, DayClosedException, AccountException, UnknownError {
+    public String reservation(StopOvers stopOvers,LocalDate date) throws IOException, BookingNotFound, FlightNotFoundException, WrongCredentials, FlightFullException, WrongFrameTypeException, DayClosedException, AccountException, UnknownError, MaxFlightsException, IncompatibleFlightsException {
         return connection.reservation(stopOvers,date);
+    }
+
+    public String[] getBookings() throws IOException {
+        return connection.getBookingsFromAccount().toArray(new String[0]);
+    }
+
+    public List<Flight> getAllFlights() throws IOException, WrongFrameTypeException {
+        return connection.allFlights();
+    }
+
+    public void cancelBooking(String id) throws IOException, BookingNotFound, FlightNotFoundException, WrongCredentials, FlightFullException, IncompatibleFlightsException, DayClosedException, MaxFlightsException, AccountException, UnknownError {
+        connection.cancelaBooking(id);
     }
 }

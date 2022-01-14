@@ -60,6 +60,8 @@ public class ServerConnection implements Runnable, AutoCloseable{
                     break;
                 case Frame.FLIGHT:
                     adicionaDefaultFlight(frame);
+                case Frame.SPEC_BOOK:
+                    specificBooking(frame);// regista um booking com percurso especifico
                     break;
                 default:
                     return false;
@@ -131,6 +133,7 @@ public class ServerConnection implements Runnable, AutoCloseable{
         tc.send(success);
     }
 
+
     private void allFlights() throws IOException {
         Frame frame=new Frame(Frame.ALL_FLIGHTS);
         Set<Flight> flights = dataBase.getDefaultFlights();
@@ -193,17 +196,35 @@ public class ServerConnection implements Runnable, AutoCloseable{
     public void adicionaDefaultFlight(Frame frame) throws FlightException, IOException, WrongFrameTypeException {
         Frame status = new Frame(Frame.BASIC);
         List<byte[]> resp = frame.getData();
-        if(resp.size() == 3){
+        if (resp.size() == 3) {
             try {
-                dataBase.addDefaultFlight(new Flight(Helpers.randomString(),new String(resp.get(0),StandardCharsets.UTF_8),new String(resp.get(1),StandardCharsets.UTF_8),Helpers.intFromByteArray(resp.get(2))));
+                dataBase.addDefaultFlight(new Flight(Helpers.randomString(), new String(resp.get(0), StandardCharsets.UTF_8), new String(resp.get(1), StandardCharsets.UTF_8), Helpers.intFromByteArray(resp.get(2))));
                 status.addBlock("Success".getBytes(StandardCharsets.UTF_8));
-            }catch (Exception fe){
-                trataErros(fe,status);
+            } catch (Exception fe) {
+                trataErros(fe, status);
             }
             tc.send(status);
-        }else{
+        } else {
             throw new WrongFrameTypeException();
         }
+    }
+
+    public void specificBooking(Frame frame) throws IOException {
+        List<byte[]>data=frame.getData();
+        List<String> strings=new ArrayList<>();
+        LocalDate date1=Helpers.localDateFromBytes(data.get(0));
+        LocalDate date2=Helpers.localDateFromBytes(data.get(1));
+        for(int i=2;i<data.size();i++){
+            strings.add(new String(data.get(i),StandardCharsets.UTF_8));
+        }
+        Frame success=new Frame(Frame.BASIC);
+        try{
+            String result=dataBase.registerBooking(loggedUser,strings,date1,date2);
+            success.addBlock(result.getBytes(StandardCharsets.UTF_8));
+        } catch (Exception e){
+            trataErros(e,success);
+        }
+        tc.send(success);
     }
 
     public void trataErros(Exception e, Frame status){
@@ -221,6 +242,10 @@ public class ServerConnection implements Runnable, AutoCloseable{
             status.addBlock("L".getBytes(StandardCharsets.UTF_8));
         }else if(e instanceof FlightException){
             status.addBlock("F".getBytes(StandardCharsets.UTF_8));
+        }else if(e instanceof IncompatibleFlightsException){
+            status.addBlock("I".getBytes(StandardCharsets.UTF_8));
+        }else if(e instanceof MaxFlightsException){
+            status.addBlock("M".getBytes(StandardCharsets.UTF_8));
         }
          else {
              status.addBlock("?".getBytes(StandardCharsets.UTF_8)); // erro desconhecido

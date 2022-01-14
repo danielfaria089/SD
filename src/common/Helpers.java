@@ -49,4 +49,10 @@ public class Helpers {
                 .toString();
     }
 
+    public static boolean verifyDate(LocalDate date,String dateText){
+        String[] data_r = date.toString().split("-");
+        String[] data = dateText.split("/");
+        return data[0].equals(data_r[2]) && data[1].equals(data_r[1]) && data[2].equals(data_r[0]);
+    }
+
 }
