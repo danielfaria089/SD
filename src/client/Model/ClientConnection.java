@@ -152,7 +152,7 @@ public class ClientConnection {
         return res;
     }
 
-    public String adicionaDefaultFlight(String origem, String destino, String capacidade) throws IOException, FlightNotFoundException, DayClosedException, AccountException, WrongCredentials, UnknownError, BookingNotFound, FlightFullException {
+    public String adicionaDefaultFlight(String origem, String destino, String capacidade) throws IOException, FlightNotFoundException, DayClosedException, AccountException, WrongCredentials, UnknownError, BookingNotFound, FlightFullException, MaxFlightsException, IncompatibleFlightsException {
         Frame frame = new Frame(Frame.FLIGHT);
         frame.addBlock(origem.getBytes(StandardCharsets.UTF_8));
         frame.addBlock(destino.getBytes(StandardCharsets.UTF_8));
@@ -168,7 +168,7 @@ public class ClientConnection {
         return str;
     }
 
-    public void cancelaDia(LocalDate date) throws IOException, FlightNotFoundException, DayClosedException, AccountException, WrongCredentials, UnknownError, BookingNotFound, FlightFullException {
+    public void cancelaDia(LocalDate date) throws IOException, FlightNotFoundException, DayClosedException, AccountException, WrongCredentials, UnknownError, BookingNotFound, FlightFullException, MaxFlightsException, IncompatibleFlightsException {
         Frame frame = new Frame(Frame.CANCEL_DAY);
         frame.addBlock(Helpers.localDateToBytes(date));
         tc.send(frame);

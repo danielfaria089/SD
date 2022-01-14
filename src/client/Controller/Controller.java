@@ -25,14 +25,14 @@ public class Controller {
         return connection.login(username,password);
     }
 
-    public void cancelDay(LocalDate date) throws DateTimeException,FlightNotFoundException, DayClosedException, AccountException, WrongCredentials, UnknownError, BookingNotFound, IOException, FlightFullException {
+    public void cancelDay(LocalDate date) throws DateTimeException, FlightNotFoundException, DayClosedException, AccountException, WrongCredentials, UnknownError, BookingNotFound, IOException, FlightFullException, MaxFlightsException, IncompatibleFlightsException {
        if(LocalDate.now().isAfter(date)){
            throw new DateTimeException("");
        }
         connection.cancelaDia(date);
     }
 
-    public String adicionaDefaultFlight(String origem, String destino, String capacidade) throws IOException, FlightNotFoundException, DayClosedException, AccountException, WrongCredentials, UnknownError, BookingNotFound, FlightFullException {
+    public String adicionaDefaultFlight(String origem, String destino, String capacidade) throws IOException, FlightNotFoundException, DayClosedException, AccountException, WrongCredentials, UnknownError, BookingNotFound, FlightFullException, MaxFlightsException, IncompatibleFlightsException {
         return connection.adicionaDefaultFlight(origem,destino,capacidade);
     }
 

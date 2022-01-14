@@ -60,6 +60,7 @@ public class ServerConnection implements Runnable, AutoCloseable{
                     break;
                 case Frame.FLIGHT:
                     adicionaDefaultFlight(frame);
+                    break;
                 case Frame.SPEC_BOOK:
                     specificBooking(frame);// regista um booking com percurso especifico
                     break;

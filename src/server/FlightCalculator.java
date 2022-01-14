@@ -95,6 +95,7 @@ public class FlightCalculator {
         if(defaultFlights.containsKey(flight.getId()))throw new FlightException();
         else{
             defaultFlights.put(flight.getId(),flight.clone());
+            addAdjencency(flight.getOrigin(),flight.getDestination());
         }
     }
 

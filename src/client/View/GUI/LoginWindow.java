@@ -81,6 +81,7 @@ public class LoginWindow extends Window{
                         window=new AdminWindow(getController(),otherWindowsSize);
 
                     window.show();
+                    this.close(false);
                 }
                 else{
                     popupMessage("Credenciais erradas",ERROR);
