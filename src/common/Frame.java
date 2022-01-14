@@ -46,10 +46,6 @@ public class Frame {
         this.deserialize(frameBytes);
     }
 
-    public Frame(DataInputStream inputStream) throws IOException{
-        this.deserialize(inputStream);
-    }
-
     public void addBlock(byte[] block){
         data.add(Arrays.copyOf(block,block.length));
     }
@@ -64,12 +60,6 @@ public class Frame {
 
     public byte[] getDataAt(int index){
         return data.get(index);
-    }
-
-    public static byte[] readBlock(DataInputStream inputStream) throws IOException {
-        byte[]buffer=new byte[inputStream.readInt()];
-        inputStream.read(buffer,0, buffer.length);
-        return buffer;
     }
 
     public byte[] serialize() throws IOException {

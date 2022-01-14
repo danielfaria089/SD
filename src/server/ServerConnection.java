@@ -52,7 +52,11 @@ public class ServerConnection implements Runnable, AutoCloseable{
                     getNotificacoes(frame); // envia notificacoes de cancelamento
                     break;
                 case Frame.CANCEL:
-                    cancelaBooking(frame); // cancela um booking
+                    cancelaBooking(frame);// cancela um booking
+                    break;
+                case Frame.SPEC_BOOK:
+                    specificBooking(frame);// regista um booking com percurso especifico
+                    break;
                 default:
                     return false;
             }
@@ -127,6 +131,7 @@ public class ServerConnection implements Runnable, AutoCloseable{
         tc.send(success);
     }
 
+
     private void allFlights() throws IOException {
         Frame frame=new Frame(Frame.ALL_FLIGHTS);
         Set<Flight> flights = dataBase.getDefaultFlights();
@@ -173,6 +178,32 @@ public class ServerConnection implements Runnable, AutoCloseable{
         }else{
             throw new WrongFrameTypeException();
         }
+    }
+
+    public void specificBooking(Frame frame) throws IOException {
+        List<byte[]>data=frame.getData();
+        List<String> strings=new ArrayList<>();
+        LocalDate date1=Helpers.localDateFromBytes(data.get(0));
+        LocalDate date2=Helpers.localDateFromBytes(data.get(1));
+        for(int i=2;i<data.size();i++){
+            strings.add(new String(data.get(i),StandardCharsets.UTF_8));
+        }
+        Frame success=new Frame(Frame.BASIC);
+        try{
+            String result=dataBase.registerBooking(loggedUser,strings,date1,date2);
+            success.addBlock(result.getBytes(StandardCharsets.UTF_8));
+        } catch (FlightFullException e) {
+            success.addBlock("Ff".getBytes(StandardCharsets.UTF_8));
+        } catch (FlightNotFoundException e) {
+            success.addBlock("Fn".getBytes(StandardCharsets.UTF_8));
+        } catch (IncompatibleFlightsException e) {
+            success.addBlock("I".getBytes(StandardCharsets.UTF_8));
+        } catch (DayClosedException e) {
+            success.addBlock("D".getBytes(StandardCharsets.UTF_8));
+        } catch (MaxFlightsException e) {
+            success.addBlock("M".getBytes(StandardCharsets.UTF_8));
+        }
+        tc.send(success);
     }
 
     public void trataErros(Exception e, Frame status){

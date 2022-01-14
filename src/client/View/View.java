@@ -21,7 +21,7 @@ public class View {
         try{
             ClientConnection connection=new ClientConnection(Helpers.IP,Helpers.PORT);
             Controller controller=new Controller(connection);
-            Window window=new AdminWindow(controller,new Dimension(1200,400));
+            Window window=new ClientWindow(controller,new Dimension(600,400));
             window.show();
         } catch (IOException e) {
             e.printStackTrace();

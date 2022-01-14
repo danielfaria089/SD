@@ -3,6 +3,8 @@ package client.View.GUI;
 import client.Controller.Controller;
 import common.Exceptions.*;
 import common.Exceptions.UnknownError;
+import common.Flight;
+import common.Helpers;
 import common.Pair;
 import common.StopOvers;
 
@@ -43,7 +45,7 @@ public class ClientWindow extends Window{
         JButton reservation=new JButton("Book a Flight");
         JButton stopOvers=new JButton("Book Specific Route");
         JButton flights=new JButton("Available Flights");
-        JButton cancelation=new JButton("Cancel a Flight");
+        JButton cancelation=new JButton("Cancel a Booking");
 
 
         switch (selected) {
@@ -120,10 +122,8 @@ public class ClientWindow extends Window{
             JComboBox<String> cities2=new JComboBox<>(arrayCities);
             cities2.setEditable(true);
 
-            DateFormat format = new SimpleDateFormat("dd/MM/yyyy");
-            DateFormatter df = new DateFormatter(format);
-            JFormattedTextField datefield1 = new JFormattedTextField(df);
-            JFormattedTextField datefield2 = new JFormattedTextField(df);
+            JTextField datefield1 = new JTextField();
+            JTextField datefield2 = new JTextField();
 
             datefield1.setPreferredSize(new Dimension(100,20));
             datefield2.setPreferredSize(new Dimension(100,20));
@@ -173,23 +173,24 @@ public class ClientWindow extends Window{
                         String city1=(String)cities1.getSelectedItem();
                         String city2=(String)cities2.getSelectedItem();
 
-                        ArrayList<DupleCompPos> components;
-                        components= new ArrayList<>();
-                        components.add(new DupleCompPos(buttons(1),BorderLayout.PAGE_START));
-                        components.add(new DupleCompPos(new JPanel(),BorderLayout.EAST));
-                        components.add(new DupleCompPos(new JPanel(),BorderLayout.WEST));
-                        components.add(new DupleCompPos(reservation(bookings(city1,city2,date1,date2)),BorderLayout.CENTER));
-                        components.add(new DupleCompPos(others(),BorderLayout.PAGE_END));
-                        setComponents(components);
-                    }
-                    else popupMessage("Insert date range",WARNING);
-                }
+                        if(Helpers.verifyDate(date1,datefield1.getText())&&Helpers.verifyDate(date2,datefield2.getText())){
+                            ArrayList<DupleCompPos> components;
+                            components= new ArrayList<>();
+                            components.add(new DupleCompPos(buttons(1),BorderLayout.PAGE_START));
+                            components.add(new DupleCompPos(new JPanel(),BorderLayout.EAST));
+                            components.add(new DupleCompPos(new JPanel(),BorderLayout.WEST));
+                            components.add(new DupleCompPos(reservation(bookings(city1,city2,date1,date2)),BorderLayout.CENTER));
+                            components.add(new DupleCompPos(others(),BorderLayout.PAGE_END));
+                            setComponents(components);
+                        } else popupMessage("Invalid date",WARNING);
+                    } else popupMessage("Insert date range",WARNING);
+                }else popupMessage("Select Cities",WARNING);
             });
 
             addToGridBag(panel,new JLabel("Origem"),c,0,0,1,1,new Insets(0,0,0,0),GridBagConstraints.CENTER);
             addToGridBag(panel,new JLabel("Destino"),c,1,0,1,1,new Insets(0,0,0,0),GridBagConstraints.CENTER);
-            addToGridBag(panel,new JLabel("De:"),c,2,0,1,1,new Insets(0,0,0,0),GridBagConstraints.CENTER);
-            addToGridBag(panel,new JLabel("Até"),c,3,0,1,1,new Insets(0,0,0,0),GridBagConstraints.CENTER);
+            addToGridBag(panel,new JLabel("From:"),c,2,0,1,1,new Insets(0,0,0,0),GridBagConstraints.CENTER);
+            addToGridBag(panel,new JLabel("To:"),c,3,0,1,1,new Insets(0,0,0,0),GridBagConstraints.CENTER);
 
 
             addToGridBag(panel,cities1,c,0,1,1,1,new Insets(0,0,0,0),GridBagConstraints.CENTER);
@@ -272,35 +273,158 @@ public class ClientWindow extends Window{
             cities1.setEditable(true);
             JComboBox<String> cities2=new JComboBox<>(arrayCities);
             cities2.setEditable(true);
+            cities2.setEnabled(false);
             JComboBox<String> cities3=new JComboBox<>(arrayCities);
             cities3.setEditable(true);
+            cities3.setEnabled(false);
+            JComboBox<String> cities4=new JComboBox<>(arrayCities);
+            cities4.setEditable(true);
+
+            JCheckBox stop1=new JCheckBox("Stop Over 1(Optional)");
+            stop1.addActionListener(e->{
+                cities2.setEnabled(!cities2.isEnabled());
+            });
+            JCheckBox stop2=new JCheckBox("Stop Over 2(Optional)");
+            stop2.addActionListener(e->{
+                cities3.setEnabled(!cities3.isEnabled());
+            });
+
+
+            JTextField datefield1 = new JTextField(10);
+            JTextField datefield2 = new JTextField(10);
+
+            datefield1.addKeyListener(new KeyAdapter() {
+                @Override
+                public void keyTyped(KeyEvent key) {
+                    char c=key.getKeyChar();
+                    String text=datefield1.getText();
+                    if(text.length()>=10)key.consume();
+                    else{
+                        if((c >= '0') && (c <= '9') ){
+                            if(text.length()==2||text.length()==5)datefield1.setText(text+"/");
+                        }
+                        else if(c == KeyEvent.VK_BACK_SPACE){
+                            if(text.length()==3||text.length()==6)datefield1.setText(text.substring(0,text.length()-1));
+                        }
+                        else key.consume();
+                    }
+                }
+            });
+
+            datefield2.addKeyListener(new KeyAdapter() {
+                @Override
+                public void keyTyped(KeyEvent key) {
+                    char c=key.getKeyChar();
+                    String text=datefield2.getText();
+                    if(text.length()>=10)key.consume();
+                    else{
+                        if((c >= '0') && (c <= '9') ){
+                            if(text.length()==2||text.length()==5)datefield2.setText(text+"/");
+                        }
+                        else if(c == KeyEvent.VK_BACK_SPACE){
+                            if(text.length()==3||text.length()==6)datefield2.setText(text.substring(0,text.length()-1));
+                        }
+                        else key.consume();
+                    }
+                }
+            });
 
             JButton confirm=new JButton("Confirm");
             confirm.addActionListener(e->{
+                if(datefield1.getText().length()==10&&datefield2.getText().length()==10){
+                    List<String> stops=new ArrayList<>();
+                    stops.add((String)cities1.getSelectedItem());
+                    if(stop1.isSelected()) {
+                        stops.add((String) cities2.getSelectedItem());
+                        if(stop2.isSelected())stops.add((String)cities3.getSelectedItem());
+                    }
+                    stops.add((String) cities4.getSelectedItem());
+                    LocalDate date1=LocalDate.parse(datefield1.getText(),DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+                    LocalDate date2=LocalDate.parse(datefield2.getText(),DateTimeFormatter.ofPattern("dd/MM/yyyy"));
 
+                    if(Helpers.verifyDate(date1,datefield1.getText())&&Helpers.verifyDate(date2,datefield2.getText())){
+                        try{
+                            String result=getController().specificReservation(stops,date1,date2);
+                            popupMessage("Booking Successful\nID:"+result,SUCCESS);
+                        }catch (FlightNotFoundException exception){
+                            popupMessage("Not able to book this trip",ERROR);
+                        }
+                        catch(Exception exception){
+                            popupMessage("INTERNAL ERROR:"+exception.getMessage(),ERROR);
+                        }
+                    }else popupMessage("Invalid date",WARNING);
+                }else popupMessage("Insert date range",WARNING);
             });
+
+            addToGridBag(panel,new JLabel("Origin"),c,0,0,1,1,new Insets(0,0,0,0),GridBagConstraints.CENTER);
+            addToGridBag(panel,stop1,c,1,0,1,1,new Insets(0,0,0,0),GridBagConstraints.CENTER);
+            addToGridBag(panel,stop2,c,2,0,1,1,new Insets(0,0,0,0),GridBagConstraints.CENTER);
+            addToGridBag(panel,new JLabel("Destination"),c,3,0,1,1,new Insets(0,0,0,0),GridBagConstraints.CENTER);
+
+            addToGridBag(panel,cities1,c,0,1,1,1,new Insets(5,0,0,0),GridBagConstraints.CENTER);
+            addToGridBag(panel,cities2,c,1,1,1,1,new Insets(5,0,0,0),GridBagConstraints.CENTER);
+            addToGridBag(panel,cities3,c,2,1,1,1,new Insets(5,0,0,0),GridBagConstraints.CENTER);
+            addToGridBag(panel,cities4,c,3,1,1,1,new Insets(5,0,0,0),GridBagConstraints.CENTER);
+
+
+            addToGridBag(panel,new JLabel("From:"),c,0,2,1,1,new Insets(5,0,0,0),GridBagConstraints.WEST);
+            addToGridBag(panel,datefield1,c,1,2,1,1,new Insets(5,0,0,0),GridBagConstraints.CENTER);
+            addToGridBag(panel,new JLabel("To:"),c,2,2,1,1,new Insets(5,0,0,0),GridBagConstraints.WEST);
+            addToGridBag(panel,datefield2,c,3,2,1,1,new Insets(5,0,0,0),GridBagConstraints.CENTER);
+
+            addToGridBag(panel,new JLabel("         "),c,0,3,4,1,new Insets(0,0,0,0),GridBagConstraints.CENTER);
+            addToGridBag(panel,confirm,c,1,4,2,1,new Insets(5,0,0,0),GridBagConstraints.CENTER);
 
         } catch (IOException e) {
             popupMessage("INTERNAL ERROR:"+e.getMessage(),ERROR);
         }
-
-
-
 
         return panel;
     }
 
     private JPanel cancelation(){
         JPanel panel=new JPanel();
+        panel.setLayout(new GridBagLayout());
+        GridBagConstraints c=new GridBagConstraints();
 
+        try{
+            JComboBox<String> ids=new JComboBox<>(getController().getBookings());
+            JButton button=new JButton("Cancel Booking");
+            button.addActionListener(e->{
+                try{
+                    getController().cancelBooking((String) ids.getSelectedItem());
+                    popupMessage("Booking Canceled",SUCCESS);
+                }catch (Exception exception) {
+                    popupMessage("INTERNAL ERROR:"+exception.getMessage(),ERROR);
+                }
+            });
+            addToGridBag(panel,ids,c,0,0,1,1,new Insets(0,0,0,0),GridBagConstraints.CENTER);
+            addToGridBag(panel,button,c,0,1,1,1,new Insets(0,0,0,0),GridBagConstraints.WEST);
+
+        } catch (IOException e) {
+            popupMessage("INTERNAL ERROR:"+e.getMessage(),ERROR);
+        }
 
         return panel;
     }
 
-    private JPanel flights(){
-        JPanel panel=new JPanel();
+    private JScrollPane flights(){
+        try{
+            List<Flight> flights=getController().getAllFlights();
+            String[][] data=new String[flights.size()][3];
+            int i=0;
+            for(Flight f:flights){
+                data[i][0]=f.getOrigin();
+                data[i][1]=f.getDestination();
+                data[i][2]=Integer.toString(f.getCapacity());
+                i++;
+            }
+            JTable table=new JTable(data,new String[]{"Origin","Destination","Capacity"});
+            return new JScrollPane(table);
 
-
-        return panel;
+        } catch (Exception e) {
+            popupMessage("INTERNAL ERROR:"+e.getMessage(),ERROR);
+            return new JScrollPane();
+        }
     }
 }

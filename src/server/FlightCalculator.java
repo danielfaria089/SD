@@ -22,8 +22,8 @@ public class FlightCalculator {
     public Lock l_w = l.writeLock();
 
     public FlightCalculator(){
-        defaultFlights = new HashMap<>();
-        adjacencies = new HashMap<>();
+        defaultFlights = new TreeMap<>();
+        adjacencies = new TreeMap<>();
     }
 
     public FlightCalculator(String filename) throws IOException {
@@ -63,9 +63,14 @@ public class FlightCalculator {
     public Set<String> getAllCities(){
         l_r.lock();
         try {
-            Set<String> set=adjacencies.keySet();
-            for(Set<String> adj: adjacencies.values()){
-                set.addAll(adj);
+            Set<String> keySet=adjacencies.keySet();
+            Set<String> set=new TreeSet<>(keySet);
+            try{
+                for(Set<String> adj: adjacencies.values()){
+                    set.addAll(adj);
+                }
+            }catch (Exception e){
+                e.printStackTrace();
             }
             return set;
         }finally {
