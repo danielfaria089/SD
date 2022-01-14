@@ -96,12 +96,14 @@ public class ServerConnection implements Runnable, AutoCloseable{
         LocalDate date2=Helpers.localDateFromBytes(frame.getDataAt(3));
         Set<Booking> bookings=dataBase.possibleBookings(origin,destination,date1,date2);
 
+        Frame sentFrame=new Frame(Frame.STOPOVERS);
+
         for(Booking book:bookings){
-            frame.addBlock(Helpers.localDateToBytes(book.getDate()));
-            frame.addBlock(book.getStopOvers().createFrame().serialize());
+            sentFrame.addBlock(Helpers.localDateToBytes(book.getDate()));
+            sentFrame.addBlock(book.getStopOvers().createFrame().serialize());
         }
 
-        tc.send(frame);
+        tc.send(sentFrame);
     }
 
     //Frame que recebe: (byte)Type :(0) (LocalDate)data -> (1) (Trip)viagem

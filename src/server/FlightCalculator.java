@@ -63,7 +63,11 @@ public class FlightCalculator {
     public Set<String> getAllCities(){
         l_r.lock();
         try {
-            return adjacencies.keySet();
+            Set<String> set=adjacencies.keySet();
+            for(Set<String> adj: adjacencies.values()){
+                set.addAll(adj);
+            }
+            return set;
         }finally {
             l_r.unlock();
         }
@@ -89,13 +93,12 @@ public class FlightCalculator {
         }
     }
 
-    public Set<StopOvers> getFlights(String origin, String destination){
+    public List<StopOvers> getFlights(String origin, String destination){
         l_r.lock();
         try{
-            Set<StopOvers> stopOversSet = new TreeSet<>(StopOvers::compare);
+            List<StopOvers> stopOversList = new ArrayList<>();
             List<List<String>> ways = new ArrayList<>();
             List<String> current = new ArrayList<>();
-            current.add(origin);
             depthFirst(origin, destination, ways, current);
             for (List<String> strings : ways) {
                 StopOvers stopOvers = new StopOvers();
@@ -106,12 +109,12 @@ public class FlightCalculator {
                         Flight f = getFlight(o, d);
                         if (f != null) stopOvers.addFlight(f);
                     }
-                    stopOversSet.add(stopOvers);
+                    stopOversList.add(stopOvers);
                 } catch (IncompatibleFlightsException | MaxFlightsException e) {
                     e.printStackTrace();
                 }
             }
-            return stopOversSet;
+            return stopOversList;
         }finally {
             l_r.unlock();
         }
@@ -122,11 +125,11 @@ public class FlightCalculator {
         current.add(origin);
         for(String string: adjacencies.get(origin)){
             List<String> newCurrent=new ArrayList<>(current);
-            newCurrent.add(string);
             if(string.equals(destination)){
+                newCurrent.add(string);
                 added.add(newCurrent);
             }
-            else depthFirst(origin, destination, added, newCurrent);
+            else depthFirst(string, destination, added, newCurrent);
         }
     }
 

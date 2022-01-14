@@ -81,6 +81,23 @@ public class ClientConnection {
         return possibleBooks;
     }
 
+    public String specificReservation(List<String>stopOvers,LocalDate dateBegin,LocalDate dateEnd) throws IOException, UnknownError, FlightNotFoundException, FlightFullException, WrongCredentials, AccountException, BookingNotFound, DayClosedException, WrongFrameTypeException {
+        Frame frame=new Frame(Frame.SPEC_BOOK);
+        frame.addBlock(Helpers.localDateToBytes(dateBegin));
+        frame.addBlock(Helpers.localDateToBytes(dateEnd));
+        for(String stop:stopOvers){
+            frame.addBlock(stop.getBytes(StandardCharsets.UTF_8));
+        }
+        tc.send(frame);
+        Frame response=tc.receive();
+        if(response.getType()==Frame.BASIC){
+            String resposta=new String(response.getData().get(0), StandardCharsets.UTF_8);
+            trataErros(resposta);
+            return resposta;
+        }
+        else throw new WrongFrameTypeException();
+    }
+
     public String reservation(StopOvers stopOvers,LocalDate date) throws IOException, WrongFrameTypeException, DayClosedException, FlightFullException, FlightNotFoundException, AccountException, WrongCredentials, UnknownError, BookingNotFound {
         Frame frame=new Frame(Frame.BOOKING);
         frame.addBlock(Helpers.localDateToBytes(date));

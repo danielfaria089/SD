@@ -5,6 +5,7 @@ import common.Flight;
 import common.Booking;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 //Voos de um certo dia
 public class Flights {
@@ -62,6 +63,10 @@ public class Flights {
 
     public boolean contains(Flight flight){
         return flights.containsKey(flight.getId());
+    }
+
+    public boolean containsAll(List<Flight> flights){
+        return this.flights.keySet().containsAll(flights.stream().map(Flight::getId).collect(Collectors.toSet()));
     }
 
     public Flight getFlight(String origin, String dest){

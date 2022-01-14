@@ -19,6 +19,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Flow;
 
 public class ClientWindow extends Window{
 
@@ -73,7 +74,7 @@ public class ClientWindow extends Window{
             components.add(new DupleCompPos(buttons(2),BorderLayout.PAGE_START));
             components.add(new DupleCompPos(new JPanel(),BorderLayout.EAST));
             components.add(new DupleCompPos(new JPanel(),BorderLayout.WEST));
-            components.add(new DupleCompPos(stopOvers,BorderLayout.CENTER));
+            components.add(new DupleCompPos(stopOvers(),BorderLayout.CENTER));
             components.add(new DupleCompPos(others(),BorderLayout.PAGE_END));
             setComponents(components);
         });
@@ -185,13 +186,19 @@ public class ClientWindow extends Window{
                 }
             });
 
-            addToGridBag(panel,cities1,c,0,0,1,1,new Insets(0,0,0,0),GridBagConstraints.CENTER);
-            addToGridBag(panel,cities2,c,1,0,1,1,new Insets(0,0,0,0),GridBagConstraints.CENTER);
-            addToGridBag(panel,datefield1,c,2,0,1,1,new Insets(0,0,0,0),GridBagConstraints.CENTER);
-            addToGridBag(panel,datefield2,c,3,0,1,1,new Insets(0,0,0,0),GridBagConstraints.CENTER);
+            addToGridBag(panel,new JLabel("Origem"),c,0,0,1,1,new Insets(0,0,0,0),GridBagConstraints.CENTER);
+            addToGridBag(panel,new JLabel("Destino"),c,1,0,1,1,new Insets(0,0,0,0),GridBagConstraints.CENTER);
+            addToGridBag(panel,new JLabel("De:"),c,2,0,1,1,new Insets(0,0,0,0),GridBagConstraints.CENTER);
+            addToGridBag(panel,new JLabel("Até"),c,3,0,1,1,new Insets(0,0,0,0),GridBagConstraints.CENTER);
 
-            addToGridBag(panel,new JLabel("   "),c,0,1,3,1,new Insets(10,0,0,0),GridBagConstraints.CENTER);
-            addToGridBag(panel,confirm,c,2,1,1,1,new Insets(10,0,0,0),GridBagConstraints.CENTER);
+
+            addToGridBag(panel,cities1,c,0,1,1,1,new Insets(0,0,0,0),GridBagConstraints.CENTER);
+            addToGridBag(panel,cities2,c,1,1,1,1,new Insets(0,0,0,0),GridBagConstraints.CENTER);
+            addToGridBag(panel,datefield1,c,2,1,1,1,new Insets(0,0,0,0),GridBagConstraints.CENTER);
+            addToGridBag(panel,datefield2,c,3,1,1,1,new Insets(0,0,0,0),GridBagConstraints.CENTER);
+
+            addToGridBag(panel,new JLabel("   "),c,0,2,3,1,new Insets(10,0,0,0),GridBagConstraints.CENTER);
+            addToGridBag(panel,confirm,c,2,3,1,1,new Insets(10,0,0,0),GridBagConstraints.CENTER);
 
         } catch (IOException ignored) {}
 
@@ -230,7 +237,8 @@ public class ClientWindow extends Window{
                 if(selected>=0) {
                     Pair<LocalDate,StopOvers> pair=list.get(selected);
                     try {
-                        getController().reservation(pair.snd,pair.fst);
+                        String result=getController().reservation(pair.snd,pair.fst);
+                        popupMessage("ID de Reserva: "+result,SUCCESS);
                     } catch (Exception exception) {
                         popupMessage("INTERNAL ERROR:"+exception.getMessage(),ERROR);
                     }
@@ -255,6 +263,28 @@ public class ClientWindow extends Window{
 
     private JPanel stopOvers(){
         JPanel panel=new JPanel();
+        panel.setLayout(new GridBagLayout());
+        GridBagConstraints c=new GridBagConstraints();
+
+        try{
+            String[]arrayCities=getController().getCityNames();
+            JComboBox<String> cities1=new JComboBox<>(arrayCities);
+            cities1.setEditable(true);
+            JComboBox<String> cities2=new JComboBox<>(arrayCities);
+            cities2.setEditable(true);
+            JComboBox<String> cities3=new JComboBox<>(arrayCities);
+            cities3.setEditable(true);
+
+            JButton confirm=new JButton("Confirm");
+            confirm.addActionListener(e->{
+
+            });
+
+        } catch (IOException e) {
+            popupMessage("INTERNAL ERROR:"+e.getMessage(),ERROR);
+        }
+
+
 
 
         return panel;

@@ -76,8 +76,8 @@ public class StopOvers {
 
     public void addFlight(Flight flight) throws IncompatibleFlightsException, MaxFlightsException {
         if(stopOvers==null)throw new NullPointerException();
-        if(stopOvers.isEmpty())stopOvers.add(flight);
-        if(stopOvers.size()>=Flights.MAX_FLIGHTS)throw new MaxFlightsException();
+        else if(stopOvers.isEmpty())stopOvers.add(flight);
+        else if(stopOvers.size()>=Flights.MAX_FLIGHTS)throw new MaxFlightsException();
         else{
             if(!this.getDestination().equals(flight.getOrigin()))throw new IncompatibleFlightsException();
             else stopOvers.add(flight);
@@ -93,6 +93,9 @@ public class StopOvers {
         for(int i = 0; i< Flights.MAX_FLIGHTS; i++){
             flight1=stopOvers.get(i);
             flight2= booking.stopOvers.get(i);
+            if(flight1==null&&flight2!=null)return -1;
+            else if(flight1==null)return 0;
+            else if(flight2==null)return 1;
             if(flight1.compareFlight(flight2)!=0)return flight1.compareFlight(flight2);
         }
         return 0;
