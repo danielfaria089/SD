@@ -39,12 +39,12 @@ public class DataBase {
 
     //FUNCIONALIDADE 1:DONE
 
-    public void addClient(String username,char[]password) throws AccountException {
+    public void addClient(String username,char[]password, boolean admin) throws AccountException {
         l_w.lock();
         try {
             if(accounts.containsKey(username))throw new AccountException();
             else{
-                accounts.put(username,new Account(username,password,false));
+                accounts.put(username,new Account(username,password,admin));
             }
         }
         finally{
@@ -58,7 +58,7 @@ public class DataBase {
         try {
             if(accounts.containsKey(c.getUsername()))throw new AccountException();
             else{
-                accounts.put(c.getUsername(),new Account(c.getUsername(),c.getPassword(),false));
+                accounts.put(c.getUsername(),new Account(c.getUsername(),c.getPassword(),c.isAdmin()));
             }
         }
         finally{

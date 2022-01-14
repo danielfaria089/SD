@@ -1,5 +1,6 @@
 package server;
 
+import common.Account;
 import common.Helpers;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -11,6 +12,8 @@ public class Server {
     public static void main(String[] args) throws Exception {
         ServerSocket ss = new ServerSocket(Helpers.PORT);
         DataBase db = new DataBase();
+        db.addClient("admin",new char[]{'1','2','3','4'},true);
+
 
         while(true) {
             Socket s = ss.accept();

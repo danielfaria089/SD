@@ -53,7 +53,7 @@ public class Flights {
         for(Flight f:flights.values()){
             f.removeAllPassengers();
         }
-        closed=false;
+        closed=true;
     }
 
     public boolean contains(String id){
@@ -72,7 +72,10 @@ public class Flights {
         return null;
     }
 
-    public void addPassenger(String idCliente, List<Flight> stopOvers) throws FlightFullException {
+    public void addPassenger(String idCliente, List<Flight> stopOvers) throws FlightFullException, DayClosedException {
+        if(this.closed){
+            throw new DayClosedException();
+        }
         for(Flight f : stopOvers){
             flights.get(f.getId()).addPassenger(idCliente);
         }

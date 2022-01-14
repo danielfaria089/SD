@@ -22,6 +22,14 @@ public class Controller {
         return connection.login(username,password);
     }
 
+    public void cancelDay(LocalDate date){
+       connection.cancelaDia(date);
+    }
+
+    public void adicionaDefaultFlight(String origem, String destino, String capacidade) throws IOException {
+        connection.adicionaDefaultFlight(origem,destino,capacidade);
+    }
+
     public String[] getCityNames() throws IOException {
         return connection.getCities().toArray(new String[0]);
     }

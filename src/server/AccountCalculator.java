@@ -42,7 +42,7 @@ public class AccountCalculator {
         }
     }
 
-    public void writeFlights(String filename) throws IOException {
+    public void writeAccounts(String filename) throws IOException {
         PrintWriter writer = new PrintWriter((new FileWriter(filename)));
         for(Account a : accounts.values()){
             List<String> strings = new ArrayList<>();

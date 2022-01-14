@@ -77,14 +77,14 @@ public class ColBookings {
                 l_w.lock();
                 try {
                     if (i == percurso.size()) {
+                        flights.addPassenger(idCliente, stopOvers);
                         Booking b = new Booking(idCliente, date, stopOvers);
                         reservations.put(b.getBookingID(), b);
-                        flights.addPassenger(idCliente, stopOvers);
                         return b.getBookingID();
                     }
-                } catch (MaxFlightsException | IncompatibleFlightsException | FlightFullException e) {
+                } catch (MaxFlightsException | IncompatibleFlightsException | FlightFullException | DayClosedException e) {
                     e.printStackTrace();
-                }finally {
+                } finally {
                     l_w.lock();
                 }
             }
@@ -171,6 +171,10 @@ public class ColBookings {
         Set<String> notif = new TreeSet<>();
         l_w.lock();
         try{
+            if(!flightsMap.containsKey(date)){
+                flightsMap.put(date, new Flights(flightCalculator.getDefaultFlights()));
+            }
+            flightsMap.get(date).cancelDay();
             for(Booking booking:reservations.values()){
                 if(booking.getDate().equals(date)) {
                     notif.add(booking.createNotification());
