@@ -7,6 +7,7 @@ import common.Pair;
 import common.StopOvers;
 
 import java.io.IOException;
+import java.time.DateTimeException;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -22,12 +23,15 @@ public class Controller {
         return connection.login(username,password);
     }
 
-    public void cancelDay(LocalDate date){
-       connection.cancelaDia(date);
+    public void cancelDay(LocalDate date) throws DateTimeException,FlightNotFoundException, DayClosedException, AccountException, WrongCredentials, UnknownError, BookingNotFound, IOException, FlightFullException {
+       if(LocalDate.now().isAfter(date)){
+           throw new DateTimeException("");
+       }
+        connection.cancelaDia(date);
     }
 
-    public void adicionaDefaultFlight(String origem, String destino, String capacidade) throws IOException {
-        connection.adicionaDefaultFlight(origem,destino,capacidade);
+    public String adicionaDefaultFlight(String origem, String destino, String capacidade) throws IOException, FlightNotFoundException, DayClosedException, AccountException, WrongCredentials, UnknownError, BookingNotFound, FlightFullException {
+        return connection.adicionaDefaultFlight(origem,destino,capacidade);
     }
 
     public String[] getCityNames() throws IOException {

@@ -18,8 +18,9 @@ public class Frame {
     public static final byte NOTIF=(byte)8;
     public static final byte CANCEL=(byte)9;
     public static final byte SPEC_BOOK=(byte)10;
+    public static final byte CANCEL_DAY=(byte)11;
     // ...
-    public static final byte END=(byte) 11;
+    public static final byte END=(byte) 12;
 
     private byte type;
     private List<byte[]> data;
