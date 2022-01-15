@@ -129,13 +129,15 @@ public class FlightCalculator {
     private void depthFirst(String origin,String destination,List<List<String>> added,List<String>current){
         if(current.size()>Flights.MAX_FLIGHTS)return;
         current.add(origin);
-        for(String string: adjacencies.get(origin)){
-            List<String> newCurrent=new ArrayList<>(current);
-            if(string.equals(destination)){
-                newCurrent.add(string);
-                added.add(newCurrent);
+        Set<String> adj = adjacencies.get(origin);
+        if(adj != null) {
+            for (String string : adj) {
+                List<String> newCurrent = new ArrayList<>(current);
+                if (string.equals(destination)) {
+                    newCurrent.add(string);
+                    added.add(newCurrent);
+                } else depthFirst(string, destination, added, newCurrent);
             }
-            else depthFirst(string, destination, added, newCurrent);
         }
     }
 

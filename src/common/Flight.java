@@ -126,13 +126,12 @@ public class Flight {
         return frame;
     }
 
-    public Flight readFrame(Frame frame)throws WrongFrameTypeException{
+    public void readFrame(Frame frame)throws WrongFrameTypeException{
         if(frame.getType()!=Frame.FLIGHT) throw new WrongFrameTypeException();
         List<byte[]> bytes = frame.getData();
         id = new String(bytes.get(0),StandardCharsets.UTF_8);
         origin = new String(bytes.get(1),StandardCharsets.UTF_8);
         destination = new String(bytes.get(2),StandardCharsets.UTF_8);
         capacity = Helpers.intFromByteArray(bytes.get(3));
-        return new Flight(id,origin,destination,capacity);
     }
 }

@@ -44,6 +44,9 @@ public class Controller {
     }
 
     public String specificReservation(List<String> stopOvers,LocalDate dateBegin,LocalDate dateEnd) throws IOException, BookingNotFound, FlightNotFoundException, WrongCredentials, DayClosedException, WrongFrameTypeException, FlightFullException, AccountException, UnknownError, MaxFlightsException, IncompatibleFlightsException {
+        if(dateBegin.isAfter(dateEnd) || LocalDate.now().isAfter(dateBegin)){
+            throw new DateTimeException("");
+        }
         return connection.specificReservation(stopOvers, dateBegin, dateEnd);
     }
 
