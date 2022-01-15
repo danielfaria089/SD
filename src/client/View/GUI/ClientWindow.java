@@ -229,6 +229,9 @@ public class ClientWindow extends Window{
         panel.setLayout(new BorderLayout());
         try{
             List<Pair<LocalDate,StopOvers>>list=getController().getPossibleBookings(city1, city2, date1, date2);
+            if(list.isEmpty()){
+                popupMessage("There are no available flights",WARNING);
+            }
             String[] array=new String[list.size()];
             int count=0;
             for(Pair<LocalDate,StopOvers> elem:list){
@@ -409,6 +412,7 @@ public class ClientWindow extends Window{
             button.addActionListener(e->{
                 try{
                     getController().cancelBooking((String) ids.getSelectedItem());
+                    ids.removeItemAt(ids.getSelectedIndex());
                     popupMessage("Booking Canceled",SUCCESS);
                 }catch (Exception exception) {
                     popupMessage("INTERNAL ERROR:"+exception.getMessage(),ERROR);
