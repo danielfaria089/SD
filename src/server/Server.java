@@ -24,22 +24,16 @@ public class Server {
     public static void main(String[] args) throws Exception {
         ServerSocket ss = new ServerSocket(Helpers.PORT);
         DataBase db = new DataBase();
+        db.addClient("eu",new char[]{' '},false);
 
-        List<Flight> flight = new ArrayList<>();
-        Set<Flight> flights = new HashSet<>();
-        flights = db.getDefaultFlights();
-        for(Flight fax : flights){
-            if(fax.getOrigin().equals("Oporto")&& fax.getDestination().equals("Lisbon")){
-                flight.add(fax);
-                break;
-            }
+        while(true) {
+            Socket s = ss.accept();
+            ServerConnection sc = new ServerConnection(s,db);
+
+            for (int i = 0; i < WORKERS_PER_CONNECTION; ++i)
+                new Thread(sc).start();
         }
 
-        Booking b = new Booking("jahbdha", "tortuga", LocalDate.of(2022,9,11), flight);
-
-        db.addBooking(b);
-        db.writeBookings(BOOKING_FILE);
-        db.writeAccounts(ACCOUNTS_FILE);
     }
 }
 

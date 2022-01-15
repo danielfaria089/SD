@@ -6,6 +6,7 @@ import common.Frame;
 import common.*;
 
 import java.io.*;
+import java.time.DateTimeException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -52,7 +53,13 @@ public class ServerConnection implements Runnable, AutoCloseable{
                     getNotificacoes(frame); // envia notificacoes de cancelamento
                     break;
                 case Frame.CANCEL:
-                    cancelaBooking(frame);// cancela um booking
+                    cancelaBooking(frame);
+                    break; // cancela um booking
+                case Frame.CANCEL_DAY:
+                    cancelaDia(frame);
+                    break;
+                case Frame.FLIGHT:
+                    adicionaDefaultFlight(frame);
                     break;
                 case Frame.SPEC_BOOK:
                     specificBooking(frame);// regista um booking com percurso especifico
@@ -121,12 +128,8 @@ public class ServerConnection implements Runnable, AutoCloseable{
         try{
             dataBase.addBooking(booking);
             success.addBlock(booking.getBookingID().getBytes(StandardCharsets.UTF_8));
-        } catch (FlightNotFoundException e) {
-            success.addBlock("Fn".getBytes(StandardCharsets.UTF_8));
-        } catch (FlightFullException e) {
-            success.addBlock("Ff".getBytes(StandardCharsets.UTF_8));
-        } catch (DayClosedException e){
-            success.addBlock("D".getBytes(StandardCharsets.UTF_8));
+        } catch (Exception e){
+            trataErros(e,success);
         }
         tc.send(success);
     }
@@ -180,6 +183,33 @@ public class ServerConnection implements Runnable, AutoCloseable{
         }
     }
 
+    public void cancelaDia(Frame frame) throws IOException, WrongFrameTypeException {
+        Frame status = new Frame(Frame.BASIC);
+        List<byte[]> resp = frame.getData();
+        if(resp.size() == 1){
+            dataBase.cancelDay(Helpers.localDateFromBytes(resp.get(0)));
+            tc.send(status);
+        }else{
+            throw new WrongFrameTypeException();
+        }
+    }
+
+    public void adicionaDefaultFlight(Frame frame) throws FlightException, IOException, WrongFrameTypeException {
+        Frame status = new Frame(Frame.BASIC);
+        List<byte[]> resp = frame.getData();
+        if (resp.size() == 3) {
+            try {
+                dataBase.addDefaultFlight(new Flight(Helpers.randomString(), new String(resp.get(0), StandardCharsets.UTF_8), new String(resp.get(1), StandardCharsets.UTF_8), Helpers.intFromByteArray(resp.get(2))));
+                status.addBlock("Success".getBytes(StandardCharsets.UTF_8));
+            } catch (Exception fe) {
+                trataErros(fe, status);
+            }
+            tc.send(status);
+        } else {
+            throw new WrongFrameTypeException();
+        }
+    }
+
     public void specificBooking(Frame frame) throws IOException {
         List<byte[]>data=frame.getData();
         List<String> strings=new ArrayList<>();
@@ -192,16 +222,8 @@ public class ServerConnection implements Runnable, AutoCloseable{
         try{
             String result=dataBase.registerBooking(loggedUser,strings,date1,date2);
             success.addBlock(result.getBytes(StandardCharsets.UTF_8));
-        } catch (FlightFullException e) {
-            success.addBlock("Ff".getBytes(StandardCharsets.UTF_8));
-        } catch (FlightNotFoundException e) {
-            success.addBlock("Fn".getBytes(StandardCharsets.UTF_8));
-        } catch (IncompatibleFlightsException e) {
-            success.addBlock("I".getBytes(StandardCharsets.UTF_8));
-        } catch (DayClosedException e) {
-            success.addBlock("D".getBytes(StandardCharsets.UTF_8));
-        } catch (MaxFlightsException e) {
-            success.addBlock("M".getBytes(StandardCharsets.UTF_8));
+        } catch (Exception e){
+            trataErros(e,success);
         }
         tc.send(success);
     }
@@ -219,6 +241,12 @@ public class ServerConnection implements Runnable, AutoCloseable{
             status.addBlock("Ff".getBytes(StandardCharsets.UTF_8));
         }else if(e instanceof WrongCredentials) {
             status.addBlock("L".getBytes(StandardCharsets.UTF_8));
+        }else if(e instanceof FlightException){
+            status.addBlock("F".getBytes(StandardCharsets.UTF_8));
+        }else if(e instanceof IncompatibleFlightsException){
+            status.addBlock("I".getBytes(StandardCharsets.UTF_8));
+        }else if(e instanceof MaxFlightsException){
+            status.addBlock("M".getBytes(StandardCharsets.UTF_8));
         }
          else {
              status.addBlock("?".getBytes(StandardCharsets.UTF_8)); // erro desconhecido

@@ -1,6 +1,8 @@
 package client.View.GUI;
 
 import client.Controller.Controller;
+import common.Exceptions.*;
+import common.Exceptions.UnknownError;
 
 import javax.swing.*;
 import javax.swing.border.LineBorder;
@@ -12,6 +14,7 @@ import java.io.IOException;
 import java.lang.management.BufferPoolMXBean;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.DateTimeException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -86,11 +89,12 @@ public class AdminWindow extends Window{
             if(origem.getText().length() > 0 && destino.getText().length() > 0 && capacidade.getText().length() > 0){
                 try {
                     Integer.parseInt(capacidade.getText());
-                    getController().adicionaDefaultFlight(origem.getText(),destino.getText(),capacidade.getText());
+                    String str = getController().adicionaDefaultFlight(origem.getText(),destino.getText(),capacidade.getText());
+                    popupMessage(str,INFO);
                 }catch (NumberFormatException error){
                     popupMessage("Invalid Capacity",WARNING);
-                }catch (IOException error2){
-                    popupMessage("Error",ERROR);
+                }catch (Exception error2){
+                    popupMessage("ERROR: " + error2.getClass().getSimpleName(),ERROR);
                 }
             }else{
                 popupMessage("There are still empty fields",WARNING);
@@ -144,7 +148,14 @@ public class AdminWindow extends Window{
                     LocalDate date=LocalDate.parse(datefield.getText(),DateTimeFormatter.ofPattern("dd/MM/yyyy"));
                     String[] data_r = date.toString().split("-");
                     if(data[0].equals(data_r[2]) && data[1].equals(data_r[1]) && data[2].equals(data_r[0])){
-                        getController().cancelDay(date);
+                        try {
+                            getController().cancelDay(date);
+                            popupMessage("Day Canceled",INFO);
+                        } catch (DateTimeException es){
+                            popupMessage("Date is before the present day",WARNING);
+                        } catch (Exception ex) {
+                            popupMessage("ERROR: " + ex.getClass().getSimpleName(),ERROR);
+                        }
                     }else{
                         popupMessage("Invalid date",WARNING);
                     }

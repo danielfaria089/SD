@@ -152,22 +152,31 @@ public class ClientConnection {
         return res;
     }
 
-    public void adicionaDefaultFlight(String origem, String destino, String capacidade) throws IOException {
-        Frame frame = new Frame(Frame.CANCEL);
+    public String adicionaDefaultFlight(String origem, String destino, String capacidade) throws IOException, FlightNotFoundException, DayClosedException, AccountException, WrongCredentials, UnknownError, BookingNotFound, FlightFullException, MaxFlightsException, IncompatibleFlightsException {
+        Frame frame = new Frame(Frame.FLIGHT);
         frame.addBlock(origem.getBytes(StandardCharsets.UTF_8));
         frame.addBlock(destino.getBytes(StandardCharsets.UTF_8));
-        frame.addBlock(capacidade.getBytes(StandardCharsets.UTF_8));
+        frame.addBlock(Helpers.intToByteArray(Integer.parseInt(capacidade)));
+        tc.send(frame);
+
+        List<byte[]> resp = tc.receive().getData();
+        String str = "Error";
+        if(!resp.isEmpty()){
+            str = new String(resp.get(0),StandardCharsets.UTF_8);
+            trataErros(str);
+        }
+        return str;
+    }
+
+    public void cancelaDia(LocalDate date) throws IOException, FlightNotFoundException, DayClosedException, AccountException, WrongCredentials, UnknownError, BookingNotFound, FlightFullException, MaxFlightsException, IncompatibleFlightsException {
+        Frame frame = new Frame(Frame.CANCEL_DAY);
+        frame.addBlock(Helpers.localDateToBytes(date));
         tc.send(frame);
 
         List<byte[]> resp = tc.receive().getData();
         if(!resp.isEmpty()){
-       //     trataErros(new String(resp.get(0),StandardCharsets.UTF_8));
+            trataErros(new String(resp.get(0),StandardCharsets.UTF_8));
         }
-    }
-
-    public void cancelaDia(LocalDate date){
-        Frame frame = new Frame(Frame.CANCEL);
-        //frame.addBlock();
     }
 
     public void cancelaBooking(String bookingId) throws IOException, FlightNotFoundException, DayClosedException, AccountException, WrongCredentials, UnknownError, BookingNotFound, FlightFullException, MaxFlightsException, IncompatibleFlightsException {

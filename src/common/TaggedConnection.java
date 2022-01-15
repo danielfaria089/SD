@@ -41,6 +41,7 @@ public class TaggedConnection implements AutoCloseable {
 
     public void send(byte tag, List<byte[]> dataN) throws IOException {
         w_lock.lock();
+
         try {
             out.write(tag);
             out.writeInt(dataN.size());
@@ -49,6 +50,7 @@ public class TaggedConnection implements AutoCloseable {
                 out.write(data);
             }
             out.flush();
+
         }finally {
             w_lock.unlock();
         }

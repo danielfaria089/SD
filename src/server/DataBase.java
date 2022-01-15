@@ -7,6 +7,7 @@ import common.Booking;
 import common.StopOvers;
 
 import java.io.*;
+import java.time.DateTimeException;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -116,9 +117,9 @@ public class DataBase {
 
     //FUNCIONALIDADE 4: DONE
 
-    public void cancelDay(LocalDate date){
-        Set<String> cancelledBookings= bookings.cancelDay(date,l_w);
+    public void cancelDay(LocalDate date) throws DateTimeException{
         try{
+            Set<String> cancelledBookings= bookings.cancelDay(date,l_w);
             for(String notif : cancelledBookings){
                 String[] notificacao = notif.split(" ");
                 accounts.get(notificacao[0]).adicionarNotificacao(notificacao[1]);

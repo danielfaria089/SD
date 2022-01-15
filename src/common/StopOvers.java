@@ -46,7 +46,7 @@ public class StopOvers {
         if(frame.getType()!=(byte)3)throw new WrongFrameTypeException();
         List<byte[]>data=frame.getData();
         stopOvers=new ArrayList<>();
-        for(int i=1;i<data.size();i++){
+        for(int i=0;i<data.size();i++){
             byte[]block=data.get(i);
             Flight flight=new Flight(new Frame(block));
             stopOvers.add(flight);

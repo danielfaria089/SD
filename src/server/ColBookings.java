@@ -7,6 +7,7 @@ import common.Flight;
 import common.StopOvers;
 
 import java.io.*;
+import java.time.DateTimeException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -26,7 +27,7 @@ public class ColBookings {
     public ColBookings(FlightCalculator calculator, String filename) throws IOException, FlightNotFoundException, DayClosedException, MaxFlightsException, IncompatibleFlightsException, FlightFullException {
         flightCalculator=calculator;
         reservations = new HashMap<>();
-        flightsMap = new HashMap<>();
+        flightsMap = new TreeMap<>(LocalDate::compareTo);
         readBookings(filename);
     }
 

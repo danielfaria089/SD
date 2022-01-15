@@ -8,8 +8,8 @@ import common.Pair;
 import common.StopOvers;
 
 import java.io.IOException;
+import java.time.DateTimeException;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 
 public class Controller {
@@ -24,12 +24,15 @@ public class Controller {
         return connection.login(username,password);
     }
 
-    public void cancelDay(LocalDate date){
-       connection.cancelaDia(date);
+    public void cancelDay(LocalDate date) throws DateTimeException, FlightNotFoundException, DayClosedException, AccountException, WrongCredentials, UnknownError, BookingNotFound, IOException, FlightFullException, MaxFlightsException, IncompatibleFlightsException {
+       if(LocalDate.now().isAfter(date)){
+           throw new DateTimeException("");
+       }
+        connection.cancelaDia(date);
     }
 
-    public void adicionaDefaultFlight(String origem, String destino, String capacidade) throws IOException {
-        connection.adicionaDefaultFlight(origem,destino,capacidade);
+    public String adicionaDefaultFlight(String origem, String destino, String capacidade) throws IOException, FlightNotFoundException, DayClosedException, AccountException, WrongCredentials, UnknownError, BookingNotFound, FlightFullException, MaxFlightsException, IncompatibleFlightsException {
+        return connection.adicionaDefaultFlight(origem,destino,capacidade);
     }
 
     public String[] getCityNames() throws IOException {
@@ -41,6 +44,9 @@ public class Controller {
     }
 
     public String specificReservation(List<String> stopOvers,LocalDate dateBegin,LocalDate dateEnd) throws IOException, BookingNotFound, FlightNotFoundException, WrongCredentials, DayClosedException, WrongFrameTypeException, FlightFullException, AccountException, UnknownError, MaxFlightsException, IncompatibleFlightsException {
+        if(dateBegin.isAfter(dateEnd) || LocalDate.now().isAfter(dateBegin)){
+            throw new DateTimeException("");
+        }
         return connection.specificReservation(stopOvers, dateBegin, dateEnd);
     }
 
