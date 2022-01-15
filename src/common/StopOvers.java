@@ -74,10 +74,9 @@ public class StopOvers {
         return stopOvers.stream().map(Flight::getId).collect(Collectors.toSet());
     }
 
-    public void addFlight(Flight flight) throws IncompatibleFlightsException, MaxFlightsException {
+    public void addFlight(Flight flight) throws IncompatibleFlightsException {
         if(stopOvers==null)throw new NullPointerException();
         else if(stopOvers.isEmpty())stopOvers.add(flight);
-        else if(stopOvers.size()>=Flights.MAX_FLIGHTS)throw new MaxFlightsException();
         else{
             if(!this.getDestination().equals(flight.getOrigin()))throw new IncompatibleFlightsException();
             else stopOvers.add(flight);
@@ -88,9 +87,10 @@ public class StopOvers {
         if(stopOvers==null && booking.stopOvers!=null)return -1;
         if(stopOvers==null)return 0;
         if(booking.stopOvers==null)return 1;
+        if(this.stopOvers.size()!=booking.stopOvers.size())return this.stopOvers.size()-booking.stopOvers.size();
         Flight flight1;
         Flight flight2;
-        for(int i = 0; i< Flights.MAX_FLIGHTS; i++){
+        for(int i = 0; i< stopOvers.size(); i++){
             flight1=stopOvers.get(i);
             flight2= booking.stopOvers.get(i);
             if(flight1==null&&flight2!=null)return -1;
