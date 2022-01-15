@@ -30,11 +30,11 @@ public class ColBookings {
         flightsMap = new TreeMap<>(LocalDate::compareTo);
     }
 
-    public Set<Booking> getPossibleBookings(String origin, String destination, List<LocalDate> dates){
+    public List<Booking> getPossibleBookings(String origin, String destination, List<LocalDate> dates){
         l_r.lock();
         try {
             List<StopOvers> stopOversList = flightCalculator.getFlights(origin, destination);
-            Set<Booking> bookings = new TreeSet<>(Comparator.comparing(Booking::getBookingID));
+            List<Booking> bookings = new ArrayList<>();
             for (LocalDate date : dates) {
                 if(!flightsMap.containsKey(date)) {
                     flightsMap.put(date, new Flights(flightCalculator.getDefaultFlights()));
@@ -62,6 +62,9 @@ public class ColBookings {
         l_w.lock();
         try {
             for (LocalDate date : dates) {
+                if(!flightsMap.containsKey(date)) {
+                    flightsMap.put(date, new Flights(flightCalculator.getDefaultFlights()));
+                }
                 Flights flights = flightsMap.get(date);
                 List<Flight> stopOvers = new ArrayList<>();
                 int i;

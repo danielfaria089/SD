@@ -105,7 +105,7 @@ public class ServerConnection implements Runnable, AutoCloseable{
 
         LocalDate date1=Helpers.localDateFromBytes(frame.getDataAt(2));
         LocalDate date2=Helpers.localDateFromBytes(frame.getDataAt(3));
-        Set<Booking> bookings=dataBase.possibleBookings(origin,destination,date1,date2);
+        List<Booking> bookings=dataBase.possibleBookings(origin,destination,date1,date2);
 
         Frame sentFrame=new Frame(Frame.STOPOVERS);
 
