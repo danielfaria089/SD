@@ -24,11 +24,10 @@ public class ColBookings {
     private Lock l_w = l.writeLock();
     private Lock l_r = l.readLock();
 
-    public ColBookings(FlightCalculator calculator, String filename) throws IOException, FlightNotFoundException, DayClosedException, MaxFlightsException, IncompatibleFlightsException, FlightFullException {
+    public ColBookings(FlightCalculator calculator) throws IOException, FlightNotFoundException, DayClosedException, MaxFlightsException, IncompatibleFlightsException, FlightFullException {
         flightCalculator=calculator;
         reservations = new HashMap<>();
         flightsMap = new TreeMap<>(LocalDate::compareTo);
-        readBookings(filename);
     }
 
     public Set<Booking> getPossibleBookings(String origin, String destination, List<LocalDate> dates){
@@ -106,7 +105,7 @@ public class ColBookings {
 
 
     public void cancelBooking(String bookingID,String clientID) throws BookingNotFound, DayClosedException, AccountException {
-        l_r.lock();
+        l_w.lock();
         try{
             if (!reservations.get(bookingID).getClientID().equals(clientID)) throw new AccountException();
             else {
@@ -115,17 +114,12 @@ public class ColBookings {
                 if (flights == null) throw new BookingNotFound();
                 else if (flights.isClosed()) throw new DayClosedException();
                 else {
-                    l_w.lock();
-                    try {
-                        reservations.remove(bookingID); // só depois remover
-                        flights.cancelBooking(booking);
-                    }finally {
-                        l_w.unlock();
-                    }
+                    reservations.remove(bookingID); // só depois remover
+                    flights.cancelBooking(booking);
                 }
             }
         }finally {
-            l_r.unlock();
+            l_w.unlock();
         }
     }
 
@@ -202,19 +196,12 @@ public class ColBookings {
         return flightCalculator.getDefaultFlights();
     }
 
-    private void readBookings(String filename) throws IOException, FlightNotFoundException, DayClosedException, FlightFullException, MaxFlightsException, IncompatibleFlightsException {
-        BufferedReader reader = new BufferedReader((new FileReader(filename)));
-        String line;
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        while ((line = reader.readLine())!=null){
-            String[] strings = line.split(";");
-            List<Flight> flights = new ArrayList<>();
-            for(int i = 3; i < strings.length; i++){
-                flights.add(flightCalculator.getDefaultFlight(strings[i]));
-            }
-            Booking a = new Booking(strings[0], strings[1],LocalDate.parse(strings[2], formatter),flights);
-            addBooking(a);
+    public Flight getDefaultFlight(String id){
+        Flight flight = new Flight();
+        for(Flight f : getDefaultFlights()){
+            if(f.getId().equals(id)) flight = f;
         }
+        return flight;
     }
 
     public void writeBookings(String filename) throws IOException {

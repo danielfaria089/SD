@@ -415,7 +415,7 @@ public class ClientWindow extends Window{
                 }
             });
             addToGridBag(panel,ids,c,0,0,1,1,new Insets(0,0,0,0),GridBagConstraints.CENTER);
-            addToGridBag(panel,button,c,0,1,1,1,new Insets(0,0,0,0),GridBagConstraints.WEST);
+            addToGridBag(panel,button,c,0,1,1,1,new Insets(5,0,0,0),GridBagConstraints.WEST);
 
         } catch (IOException e) {
             popupMessage("INTERNAL ERROR:"+e.getMessage(),ERROR);

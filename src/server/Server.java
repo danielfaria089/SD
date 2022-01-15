@@ -41,7 +41,6 @@ public class Server {
         try{
             boolean run=true;
             DataBase base=new DataBase();
-            base.addClient("teste",new char[]{'c','o','n','a'});
             ServerSocket serverSocket=new ServerSocket(Helpers.PORT);
 
             while(run){
