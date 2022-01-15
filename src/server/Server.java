@@ -31,6 +31,7 @@ public class Server {
 
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
                 try {
+                    db.clearOldFlights();
                     db.writeAccounts(ACCOUNTS_FILE);
                     db.writeBookings(BOOKING_FILE);
                     db.writeFlights(FLIGHTS_FILE);

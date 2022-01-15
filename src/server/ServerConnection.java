@@ -64,6 +64,10 @@ public class ServerConnection implements Runnable, AutoCloseable{
                 case Frame.SPEC_BOOK:
                     specificBooking(frame);// regista um booking com percurso especifico
                     break;
+                case Frame.REGISTER:
+                    registerClinte(frame);
+                    break;
+
                 default:
                     return false;
             }
@@ -77,8 +81,17 @@ public class ServerConnection implements Runnable, AutoCloseable{
         return true;
     }
 
+    private void registerClinte(Frame frame) throws WrongFrameTypeException, AccountException, IOException {
+        Credentials credentials=new Credentials(frame,true);
+        dataBase.addClient(credentials.getUsername(), credentials.getPassword(),false);
+        loggedUser=credentials.getUsername();
+        Frame success=new Frame(Frame.BASIC);
+        success.addBlock("OK".getBytes(StandardCharsets.UTF_8));
+        tc.send(success);
+    }
+
     private void login(Frame frame) throws IOException, WrongFrameTypeException, AccountException, WrongCredentials {
-        Credentials credentials=new Credentials(frame);
+        Credentials credentials=new Credentials(frame,false);
         if(dataBase.checkLogIn(credentials.getUsername(), credentials.getPassword())){
             loggedUser=credentials.getUsername();
             Frame success=new Frame(Frame.BASIC);

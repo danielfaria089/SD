@@ -62,6 +62,9 @@ public class ColBookings {
         l_w.lock();
         try {
             for (LocalDate date : dates) {
+                if(!flightsMap.containsKey(date)) {
+                    flightsMap.put(date, new Flights(flightCalculator.getDefaultFlights()));
+                }
                 Flights flights = flightsMap.get(date);
                 List<Flight> stopOvers = new ArrayList<>();
                 int i;
@@ -179,13 +182,22 @@ public class ColBookings {
         }
     }
 
-    public void clearOldFlights(){
+    public List<Booking> clearOldFlights(){
+        List<LocalDate> rem_data = new ArrayList<>();
+        List<Booking> rem_book = new ArrayList<>();
         for(LocalDate day: flightsMap.keySet()){
-            if(day.isBefore(LocalDate.now().minusDays(1)))flightsMap.remove(day);//Minus para nao eliminar voos que ainda nao ocorreram em outras timezones
+            if(day.isBefore(LocalDate.now().minusDays(1)))rem_data.add(day);//Minus para nao eliminar voos que ainda nao ocorreram em outras timezones
         }
         for(Booking booking: reservations.values()){
-            if(booking.getDate().isBefore(LocalDate.now().minusDays(1)))reservations.remove(booking.getBookingID());
+            if(booking.getDate().isBefore(LocalDate.now().minusDays(1)))rem_book.add(reservations.get(booking.getBookingID()));
         }
+        for(LocalDate d : rem_data){
+            flightsMap.remove(d);
+        }
+        for (Booking b : rem_book){
+            reservations.remove(b.getBookingID());
+        }
+        return rem_book;
     }
 
     public Set<String> getAllCities(){

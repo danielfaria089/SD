@@ -24,6 +24,10 @@ public class Controller {
         return connection.login(username,password);
     }
 
+    public void register(String username, char[] password) throws IOException, WrongFrameTypeException, FlightNotFoundException, DayClosedException, AccountException, WrongCredentials, MaxFlightsException, UnknownError, BookingNotFound, IncompatibleFlightsException, FlightFullException {
+       connection.registarCliente(username,password);
+    }
+
     public void cancelDay(LocalDate date) throws DateTimeException, FlightNotFoundException, DayClosedException, AccountException, WrongCredentials, UnknownError, BookingNotFound, IOException, FlightFullException, MaxFlightsException, IncompatibleFlightsException {
        if(LocalDate.now().isAfter(date)){
            throw new DateTimeException("");

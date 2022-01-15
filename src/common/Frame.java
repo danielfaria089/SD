@@ -19,6 +19,7 @@ public class Frame {
     public static final byte CANCEL=(byte)9;
     public static final byte SPEC_BOOK=(byte)10;
     public static final byte CANCEL_DAY=(byte)11;
+    public static final byte REGISTER=(byte) 12;
     // ...
     public static final byte END=(byte) 12;
 

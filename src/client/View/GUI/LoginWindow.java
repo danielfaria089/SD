@@ -1,11 +1,13 @@
 package client.View.GUI;
 
 import client.Controller.Controller;
+import common.Exceptions.AccountException;
 import common.Exceptions.WrongFrameTypeException;
 
 import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
+import java.rmi.AccessException;
 import java.util.ArrayList;
 
 public class LoginWindow extends Window{
@@ -15,7 +17,7 @@ public class LoginWindow extends Window{
     private Dimension otherWindowsSize;
 
     public LoginWindow(Controller controller){
-        super("Autenticação",true,new Dimension(300,400),controller);
+        super("Autentication",true,new Dimension(300,400),controller);
         GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
         int width = gd.getDisplayMode().getWidth()/2;
         int height = gd.getDisplayMode().getHeight()/2;
@@ -37,8 +39,8 @@ public class LoginWindow extends Window{
 
         username=new JTextField(20);
         password=new JPasswordField(20);
-        JLabel usernameLabel=new JLabel("Utilizador");
-        JLabel passwordLabel=new JLabel("Palavra-Passe");
+        JLabel usernameLabel=new JLabel("Username:");
+        JLabel passwordLabel=new JLabel("Password:");
 
         panel.setBorder(BorderFactory.createEmptyBorder(10,10,10,10));
         panel.add(usernameLabel);
@@ -55,15 +57,16 @@ public class LoginWindow extends Window{
         flowLayout.setAlignment(FlowLayout.RIGHT);
         panel.setLayout(flowLayout);
 
-        JButton login=new JButton("Autenticar");
-        JButton cancel=new JButton("Cancelar");
+        JButton login=new JButton("Log In");
+        JButton cancel=new JButton("Cancel");
+        JButton register= new JButton("Register");
 
         login.addActionListener(e->{
             try {
                 String[] result = getController().login(username.getText(),password.getPassword()); // result tem os id's das reservas canceladas a partir do indice 1
                 int id = Integer.parseInt(result[0]);
                 if(id>0){
-                    popupMessage("Loggado com sucesso",SUCCESS);
+                    popupMessage("Logged IN",SUCCESS);
                     setBase(false);
                     Window window;
 
@@ -71,7 +74,7 @@ public class LoginWindow extends Window{
                         window=new ClientWindow(getController(),otherWindowsSize);
                         if(result.length > 1){
                             StringBuilder sb = new StringBuilder();
-                            sb.append("As seguintes reservas foram canceladas: ").append("\n");
+                            sb.append("The following reservations have been cancelled: ").append("\n");
                             for(int i = 1; i < result.length ; i++)
                                 sb.append("\t-").append(result[i]).append("\n");
                             popupMessage(sb.toString(),WARNING);
@@ -84,20 +87,38 @@ public class LoginWindow extends Window{
                     this.close(false);
                 }
                 else{
-                    popupMessage("Credenciais erradas",ERROR);
+                    popupMessage("Wrong Credentials",ERROR);
                     username.setText("");
                     password.setText("");
                 }
             } catch (IOException | WrongFrameTypeException ioException) {
-                popupMessage("Erro interno",ERROR);
+                popupMessage("Internal Error",ERROR);
             }
         });
+
+        register.addActionListener(e->{
+            try {
+                getController().register(username.getText(),password.getPassword());
+                popupMessage("Account Created",SUCCESS);
+                setBase(false);
+                Window window=new ClientWindow(getController(),otherWindowsSize);
+                window.show();
+                this.close(false);
+            }catch (AccountException ae){
+                popupMessage("Username already exists",WARNING);
+            }catch (Exception ex){
+                popupMessage("Internal Error",ERROR);
+            }
+
+        });
+
         cancel.addActionListener(e->this.close(true));
         cancel.setBackground(Color.RED);
         cancel.setForeground(Color.WHITE);
 
         panel.setBorder(BorderFactory.createEmptyBorder(10,10,10,10));
         panel.add(login);
+        panel.add(register);
         panel.add(cancel);
 
         return panel;

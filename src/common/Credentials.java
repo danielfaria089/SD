@@ -16,8 +16,11 @@ public class Credentials {
         this.password= Arrays.copyOf(password,password.length);
     }
 
-    public Credentials(Frame frame) throws WrongFrameTypeException{
-        this.readFrame(frame);
+    public Credentials(Frame frame,boolean register) throws WrongFrameTypeException{
+        if(register)
+            readFrame_Register(frame);
+        else
+            this.readFrame(frame);
     }
 
     public Frame createFrame(){
@@ -25,6 +28,20 @@ public class Credentials {
         frame.addBlock(username.getBytes(StandardCharsets.UTF_8));
         frame.addBlock(Helpers.charToBytes(password));
         return frame;
+    }
+
+    public Frame createFrame_Register(){
+        Frame frame=new Frame(Frame.REGISTER);
+        frame.addBlock(username.getBytes(StandardCharsets.UTF_8));
+        frame.addBlock(Helpers.charToBytes(password));
+        return frame;
+    }
+
+    public void readFrame_Register(Frame frame) throws WrongFrameTypeException{
+        if(frame.getType()!=Frame.REGISTER)throw new WrongFrameTypeException();
+        List<byte[]> data=frame.getData();
+        username=new String(data.get(0),StandardCharsets.UTF_8);
+        password=Helpers.bytesToChar(data.get(1));
     }
 
     public void readFrame(Frame frame) throws WrongFrameTypeException{

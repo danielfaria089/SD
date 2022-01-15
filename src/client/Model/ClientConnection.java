@@ -52,6 +52,20 @@ public class ClientConnection {
         else throw new WrongFrameTypeException();
     }
 
+    public void registarCliente(String username,char[]password) throws IOException, WrongFrameTypeException, FlightNotFoundException, DayClosedException, AccountException, WrongCredentials, MaxFlightsException, UnknownError, BookingNotFound, IncompatibleFlightsException, FlightFullException {
+        Credentials credentials = new Credentials(username,password);
+        tc.send(credentials.createFrame_Register());
+
+        Frame response=tc.receive();
+        List<byte[]> data=response.getData();
+        String res = new String(data.get(0),StandardCharsets.UTF_8);
+        if(response.getType()==Frame.BASIC && data.size() == 1){
+            trataErros(res);
+            logged=username;
+        }
+        else throw new WrongFrameTypeException();
+    }
+
     public Set<String> getCities() throws IOException {
         Set<String> cities=new TreeSet<>();
         Frame frame=new Frame(Frame.CITIES);
