@@ -167,7 +167,7 @@ public class DataBase {
         return bookings.getAllCities();
     }
 
-    public Set<Booking> possibleBookings(String origin, String destination, LocalDate start, LocalDate end){
+    public List<Booking> possibleBookings(String origin, String destination, LocalDate start, LocalDate end){
         if(start.isAfter(end))return null;
         List<LocalDate> dates = Stream.iterate(start, date -> date.plusDays(1))
                             .limit(ChronoUnit.DAYS.between(start, end)+1)

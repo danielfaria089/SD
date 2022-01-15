@@ -10,6 +10,7 @@ import common.StopOvers;
 
 import javax.swing.*;
 import javax.swing.border.LineBorder;
+import javax.swing.table.DefaultTableModel;
 import javax.swing.text.DateFormatter;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
@@ -54,9 +55,12 @@ public class ClientWindow extends Window{
                 reservation.setBorder(new LineBorder(Color.BLACK));
                 break;
             case 2:
-                flights.setBorder(new LineBorder(Color.BLACK));
+                stopOvers.setBorder(new LineBorder(Color.BLACK));
                 break;
             case 3:
+                flights.setBorder(new LineBorder(Color.BLACK));
+                break;
+            case 4:
                 cancelation.setBorder(new LineBorder(Color.BLACK));
                 break;
         }
@@ -167,32 +171,24 @@ public class ClientWindow extends Window{
 
             JButton confirm=new JButton("Confirm");
             confirm.addActionListener(e->{
-                if(cities1.getSelectedItem()!=null&&cities2.getSelectedItem()!=null){
-                    if(datefield1.getText().length()==10&&datefield2.getText().length()==10){
-                        try {
-                            LocalDate date1 = LocalDate.parse(datefield1.getText(), DateTimeFormatter.ofPattern("dd/MM/yyyy"));
-                            LocalDate date2 = LocalDate.parse(datefield2.getText(), DateTimeFormatter.ofPattern("dd/MM/yyyy"));
-                            if(date1.isAfter(date2) || LocalDate.now().isAfter(date1))
-                                throw new DateTimeException("");
-
-                            String city1 = (String) cities1.getSelectedItem();
-                            String city2 = (String) cities2.getSelectedItem();
-
-                            if (Helpers.verifyDate(date1, datefield1.getText()) && Helpers.verifyDate(date2, datefield2.getText())) {
-                                ArrayList<DupleCompPos> components;
-                                components = new ArrayList<>();
-                                components.add(new DupleCompPos(buttons(1), BorderLayout.PAGE_START));
-                                components.add(new DupleCompPos(new JPanel(), BorderLayout.EAST));
-                                components.add(new DupleCompPos(new JPanel(), BorderLayout.WEST));
-                                components.add(new DupleCompPos(reservation(bookings(city1, city2, date1, date2)), BorderLayout.CENTER));
-                                components.add(new DupleCompPos(others(), BorderLayout.PAGE_END));
-                                setComponents(components);
-                            } else popupMessage("Invalid date", WARNING);
-                        }catch (DateTimeException dte){
-                            popupMessage("Invalid date", WARNING);
-                        }
-                    } else popupMessage("Insert date range",WARNING);
-                }else popupMessage("Select Cities",WARNING);
+                if(datefield1.getText().length()==10&&datefield2.getText().length()==10){
+                    String city1 = (String) cities1.getSelectedItem();
+                    String city2 = (String) cities2.getSelectedItem();
+                    LocalDate date1 = LocalDate.parse(datefield1.getText(), DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+                    LocalDate date2 = LocalDate.parse(datefield2.getText(), DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+                    if(date1.plusMonths(2).isAfter(date2)&&date1.isBefore(date2)){
+                        if (Helpers.verifyDate(date1, datefield1.getText()) && Helpers.verifyDate(date2, datefield2.getText())) {
+                            ArrayList<DupleCompPos> components;
+                            components = new ArrayList<>();
+                            components.add(new DupleCompPos(buttons(1), BorderLayout.PAGE_START));
+                            components.add(new DupleCompPos(new JPanel(), BorderLayout.EAST));
+                            components.add(new DupleCompPos(new JPanel(), BorderLayout.WEST));
+                            components.add(new DupleCompPos(reservation(bookings(city1, city2, date1, date2)), BorderLayout.CENTER));
+                            components.add(new DupleCompPos(others(), BorderLayout.PAGE_END));
+                            setComponents(components);
+                        } else popupMessage("Invalid date", WARNING);
+                    }else popupMessage("Invalid date range", WARNING);
+                } else popupMessage("Insert date range",WARNING);
             });
 
             addToGridBag(panel,new JLabel("Origem"),c,0,0,1,1,new Insets(0,0,0,0),GridBagConstraints.CENTER);
@@ -280,31 +276,35 @@ public class ClientWindow extends Window{
 
     private JPanel stopOvers(){
         JPanel panel=new JPanel();
-        panel.setLayout(new GridBagLayout());
-        GridBagConstraints c=new GridBagConstraints();
+        panel.setLayout(new BorderLayout());
 
         try{
             String[]arrayCities=getController().getCityNames();
-            JComboBox<String> cities1=new JComboBox<>(arrayCities);
-            cities1.setEditable(true);
-            JComboBox<String> cities2=new JComboBox<>(arrayCities);
-            cities2.setEditable(true);
-            cities2.setEnabled(false);
-            JComboBox<String> cities3=new JComboBox<>(arrayCities);
-            cities3.setEditable(true);
-            cities3.setEnabled(false);
-            JComboBox<String> cities4=new JComboBox<>(arrayCities);
-            cities4.setEditable(true);
 
-            JCheckBox stop1=new JCheckBox("Stop Over 1(Optional)");
-            stop1.addActionListener(e->{
-                cities2.setEnabled(!cities2.isEnabled());
+            DefaultTableModel model=new DefaultTableModel(new String[]{"Stop Overs"},1);
+            JTable table=new JTable(model);
+
+            JComboBox<String> comboBox=new JComboBox<>(arrayCities);
+            comboBox.setEditable(true);
+
+            table.getColumnModel().getColumn(0).setCellEditor(new DefaultCellEditor(comboBox));
+
+
+            JButton addRow=new JButton("+");
+            addRow.addActionListener(e->{
+                model.addRow(new String[]{""});
             });
-            JCheckBox stop2=new JCheckBox("Stop Over 2(Optional)");
-            stop2.addActionListener(e->{
-                cities3.setEnabled(!cities3.isEnabled());
+            JButton rmvRow=new JButton("-");
+            rmvRow.addActionListener(e->{
+                model.removeRow(table.getRowCount()-1);
             });
 
+            JPanel aux1=new JPanel();
+            aux1.setLayout(new FlowLayout());
+            aux1.add(addRow);
+            aux1.add(rmvRow);
+
+            JScrollPane aux2=new JScrollPane(table);
 
             JTextField datefield1 = new JTextField(10);
             JTextField datefield2 = new JTextField(10);
@@ -349,51 +349,49 @@ public class ClientWindow extends Window{
             confirm.addActionListener(e->{
                 if(datefield1.getText().length()==10&&datefield2.getText().length()==10){
                     List<String> stops=new ArrayList<>();
-                    stops.add((String)cities1.getSelectedItem());
-                    if(stop1.isSelected()) {
-                        stops.add((String) cities2.getSelectedItem());
-                        if(stop2.isSelected())stops.add((String)cities3.getSelectedItem());
+                    for(int i=0;i<table.getRowCount();i++){
+                        stops.add((String) table.getValueAt(i,0));
                     }
-                    stops.add((String) cities4.getSelectedItem());
 
                     LocalDate date1=LocalDate.parse(datefield1.getText(),DateTimeFormatter.ofPattern("dd/MM/yyyy"));
                     LocalDate date2=LocalDate.parse(datefield2.getText(),DateTimeFormatter.ofPattern("dd/MM/yyyy"));
 
-                    if(Helpers.verifyDate(date1,datefield1.getText())&&Helpers.verifyDate(date2,datefield2.getText())){
-                        try{
-                            String result=getController().specificReservation(stops,date1,date2);
-                            popupMessage("Booking Successful\nID:"+result,SUCCESS);
-                        }catch (FlightNotFoundException exception){
-                            popupMessage("Not able to book this trip",ERROR);
-                        }catch (DateTimeException dte){
-                            popupMessage("Invalid Time Span",ERROR);
-                        }
-                        catch(Exception exception){
-                            popupMessage("INTERNAL ERROR:"+exception.getMessage(),ERROR);
-                        }
-                    }else popupMessage("Invalid date",WARNING);
+                    if(date1.plusMonths(2).isAfter(date2)&&date1.isBefore(date2)){
+                        if(Helpers.verifyDate(date1,datefield1.getText())&&Helpers.verifyDate(date2,datefield2.getText())){
+                            try{
+                                String result=getController().specificReservation(stops,date1,date2);
+                                popupMessage("Booking Successful\nID:"+result,SUCCESS);
+                            }catch (FlightNotFoundException exception){
+                                popupMessage("Not able to book this trip",ERROR);
+                            }catch (DateTimeException dte){
+                                popupMessage("Invalid Time Span",ERROR);
+                            }
+                            catch(Exception exception){
+                                popupMessage("INTERNAL ERROR:"+exception.getMessage(),ERROR);
+                            }
+                        }else popupMessage("Invalid date",WARNING);
+                    }else popupMessage("Invalid date range",WARNING);
                 }else popupMessage("Insert date range",WARNING);
             });
 
-            addToGridBag(panel,new JLabel("Origin"),c,0,0,1,1,new Insets(0,0,0,0),GridBagConstraints.CENTER);
-            addToGridBag(panel,stop1,c,1,0,1,1,new Insets(0,0,0,0),GridBagConstraints.CENTER);
-            addToGridBag(panel,stop2,c,2,0,1,1,new Insets(0,0,0,0),GridBagConstraints.CENTER);
-            addToGridBag(panel,new JLabel("Destination"),c,3,0,1,1,new Insets(0,0,0,0),GridBagConstraints.CENTER);
+            JPanel aux3=new JPanel();
+            aux3.setLayout(new GridBagLayout());
+            GridBagConstraints c=new GridBagConstraints();
 
-            addToGridBag(panel,cities1,c,0,1,1,1,new Insets(5,0,0,0),GridBagConstraints.CENTER);
-            addToGridBag(panel,cities2,c,1,1,1,1,new Insets(5,0,0,0),GridBagConstraints.CENTER);
-            addToGridBag(panel,cities3,c,2,1,1,1,new Insets(5,0,0,0),GridBagConstraints.CENTER);
-            addToGridBag(panel,cities4,c,3,1,1,1,new Insets(5,0,0,0),GridBagConstraints.CENTER);
+            addToGridBag(aux3,new JLabel("From:"),c,0,2,1,1,new Insets(5,0,0,0),GridBagConstraints.WEST);
+            addToGridBag(aux3,datefield1,c,1,2,1,1,new Insets(5,0,0,0),GridBagConstraints.CENTER);
+            addToGridBag(aux3,new JLabel("To:"),c,2,2,1,1,new Insets(5,0,0,0),GridBagConstraints.WEST);
+            addToGridBag(aux3,datefield2,c,3,2,1,1,new Insets(5,0,0,0),GridBagConstraints.CENTER);
+
+            addToGridBag(aux3,new JLabel("         "),c,0,3,4,1,new Insets(0,0,0,0),GridBagConstraints.CENTER);
+            addToGridBag(aux3,confirm,c,1,4,2,1,new Insets(5,0,0,0),GridBagConstraints.CENTER);
 
 
-            addToGridBag(panel,new JLabel("From:"),c,0,2,1,1,new Insets(5,0,0,0),GridBagConstraints.WEST);
-            addToGridBag(panel,datefield1,c,1,2,1,1,new Insets(5,0,0,0),GridBagConstraints.CENTER);
-            addToGridBag(panel,new JLabel("To:"),c,2,2,1,1,new Insets(5,0,0,0),GridBagConstraints.WEST);
-            addToGridBag(panel,datefield2,c,3,2,1,1,new Insets(5,0,0,0),GridBagConstraints.CENTER);
-
-            addToGridBag(panel,new JLabel("         "),c,0,3,4,1,new Insets(0,0,0,0),GridBagConstraints.CENTER);
-            addToGridBag(panel,confirm,c,1,4,2,1,new Insets(5,0,0,0),GridBagConstraints.CENTER);
-
+            panel.add(aux1,BorderLayout.PAGE_START);
+            panel.add(aux2,BorderLayout.CENTER);
+            panel.add(new JPanel(),BorderLayout.WEST);
+            panel.add(new JPanel(),BorderLayout.EAST);
+            panel.add(aux3,BorderLayout.PAGE_END);
         } catch (IOException e) {
             popupMessage("INTERNAL ERROR:"+e.getMessage(),ERROR);
         }
