@@ -91,7 +91,7 @@ public class LoginWindow extends Window{
                     username.setText("");
                     password.setText("");
                 }
-            } catch (IOException | WrongFrameTypeException ioException) {
+            } catch (IOException | WrongFrameTypeException | InterruptedException ioException) {
                 popupMessage("Internal Error",ERROR);
             }
         });

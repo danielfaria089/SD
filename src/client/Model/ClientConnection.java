@@ -16,20 +16,21 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
-public class ClientConnection {
-    private TaggedConnection tc;
+public class ClientConnection implements AutoCloseable {
+    private Desmultiplexer dm;
     private String logged;
 
     public ClientConnection(String ip,int port) throws IOException {
         Socket s =new Socket(ip,port);
-        tc = new TaggedConnection(s);
+        dm = new Desmultiplexer(new TaggedConnection(s));
+        dm.start();
     }
 
-    public String[] login(String username,char[]password) throws IOException,WrongFrameTypeException {
+    public String[] login(String username,char[]password) throws IOException, WrongFrameTypeException, InterruptedException {
         Credentials credentials=new Credentials(username,password);
-        tc.send(credentials.createFrame());
+        dm.send(credentials.createFrame());
 
-        Frame response=tc.receive();
+        Frame response=dm.receive(Frame.BASIC);
         if(response.getType()==Frame.BASIC){
             List<byte[]> resp = response.getData();
             String resposta=new String(resp.get(0), StandardCharsets.UTF_8);
@@ -52,11 +53,11 @@ public class ClientConnection {
         else throw new WrongFrameTypeException();
     }
 
-    public void registarCliente(String username,char[]password) throws IOException, WrongFrameTypeException, FlightNotFoundException, DayClosedException, AccountException, WrongCredentials, MaxFlightsException, UnknownError, BookingNotFound, IncompatibleFlightsException, FlightFullException {
+    public void registarCliente(String username,char[]password) throws IOException, WrongFrameTypeException, FlightNotFoundException, DayClosedException, AccountException, WrongCredentials, MaxFlightsException, UnknownError, BookingNotFound, IncompatibleFlightsException, FlightFullException, InterruptedException {
         Credentials credentials = new Credentials(username,password);
-        tc.send(credentials.createFrame_Register());
+        dm.send(credentials.createFrame_Register());
 
-        Frame response=tc.receive();
+        Frame response=dm.receive(Frame.BASIC);
         List<byte[]> data=response.getData();
         String res = new String(data.get(0),StandardCharsets.UTF_8);
         if(response.getType()==Frame.BASIC && data.size() == 1){
@@ -66,11 +67,11 @@ public class ClientConnection {
         else throw new WrongFrameTypeException();
     }
 
-    public Set<String> getCities() throws IOException {
+    public Set<String> getCities() throws IOException, InterruptedException {
         Set<String> cities=new TreeSet<>();
         Frame frame=new Frame(Frame.CITIES);
-        tc.send(frame);
-        Frame response=tc.receive();
+        dm.send(frame);
+        Frame response=dm.receive(Frame.CITIES);
         if(response.getType()==Frame.CITIES){
             List<byte[]> data=response.getData();
             for(byte[] block:data){
@@ -80,14 +81,14 @@ public class ClientConnection {
         return cities;
     }
 
-    public List<Pair<LocalDate,StopOvers>> getPossibleBookings(String city1,String city2,LocalDate date1,LocalDate date2) throws IOException {
+    public List<Pair<LocalDate,StopOvers>> getPossibleBookings(String city1,String city2,LocalDate date1,LocalDate date2) throws IOException, InterruptedException {
         Frame frame=new Frame(Frame.STOPOVERS);
         frame.addBlock(city1.getBytes(StandardCharsets.UTF_8));
         frame.addBlock(city2.getBytes(StandardCharsets.UTF_8));
         frame.addBlock(Helpers.localDateToBytes(date1));
         frame.addBlock(Helpers.localDateToBytes(date2));
-        tc.send(frame);
-        Frame response=tc.receive();
+        dm.send(frame);
+        Frame response=dm.receive(Frame.STOPOVERS);
         List<Pair<LocalDate,StopOvers>> possibleBooks=new ArrayList<>();
         List<byte[]>data=response.getData();
         try{
@@ -95,20 +96,20 @@ public class ClientConnection {
                 possibleBooks.add(new Pair<>(Helpers.localDateFromBytes(data.get(i)),new StopOvers(new Frame(data.get(i+1)))));
             }
         } catch (WrongFrameTypeException e) {
-            tc.send(frame);
+            dm.send(frame);
         }
         return possibleBooks;
     }
 
-    public String specificReservation(List<String>stopOvers,LocalDate dateBegin,LocalDate dateEnd) throws IOException, UnknownError, FlightNotFoundException, FlightFullException, WrongCredentials, AccountException, BookingNotFound, DayClosedException, WrongFrameTypeException, MaxFlightsException, IncompatibleFlightsException {
+    public String specificReservation(List<String>stopOvers,LocalDate dateBegin,LocalDate dateEnd) throws IOException, UnknownError, FlightNotFoundException, FlightFullException, WrongCredentials, AccountException, BookingNotFound, DayClosedException, WrongFrameTypeException, MaxFlightsException, IncompatibleFlightsException, InterruptedException {
         Frame frame=new Frame(Frame.SPEC_BOOK);
         frame.addBlock(Helpers.localDateToBytes(dateBegin));
         frame.addBlock(Helpers.localDateToBytes(dateEnd));
         for(String stop:stopOvers){
             frame.addBlock(stop.getBytes(StandardCharsets.UTF_8));
         }
-        tc.send(frame);
-        Frame response=tc.receive();
+        dm.send(frame);
+        Frame response=dm.receive(Frame.BASIC);
         if(response.getType()==Frame.BASIC){
             String resposta=new String(response.getData().get(0), StandardCharsets.UTF_8);
             trataErros(resposta);
@@ -117,12 +118,12 @@ public class ClientConnection {
         else throw new WrongFrameTypeException();
     }
 
-    public String reservation(StopOvers stopOvers,LocalDate date) throws IOException, WrongFrameTypeException, DayClosedException, FlightFullException, FlightNotFoundException, AccountException, WrongCredentials, UnknownError, BookingNotFound, MaxFlightsException, IncompatibleFlightsException {
+    public String reservation(StopOvers stopOvers,LocalDate date) throws IOException, WrongFrameTypeException, DayClosedException, FlightFullException, FlightNotFoundException, AccountException, WrongCredentials, UnknownError, BookingNotFound, MaxFlightsException, IncompatibleFlightsException, InterruptedException {
         Frame frame=new Frame(Frame.BOOKING);
         frame.addBlock(Helpers.localDateToBytes(date));
         frame.addBlock(stopOvers.createFrame().serialize());
-        tc.send(frame);
-        Frame response= tc.receive();
+        dm.send(frame);
+        Frame response= dm.receive(Frame.BASIC);
         if(response.getType()==Frame.BASIC){
             String resposta=new String(response.getData().get(0), StandardCharsets.UTF_8);
             trataErros(resposta);
@@ -131,12 +132,12 @@ public class ClientConnection {
         else throw new WrongFrameTypeException();
     }
 
-    public List<Flight> allFlights() throws IOException, WrongFrameTypeException {
+    public List<Flight> allFlights() throws IOException, WrongFrameTypeException, InterruptedException {
         Frame frame = new Frame((Frame.ALL_FLIGHTS));
         List<Flight> flights = new ArrayList<>();
-        tc.send(frame);
+        dm.send(frame);
 
-        Frame response = tc.receive();
+        Frame response = dm.receive(Frame.ALL_FLIGHTS);
         if(response.getType()==Frame.ALL_FLIGHTS){
             for(byte[] b : response.getData()){
                 flights.add(new Flight(new Frame(b)));
@@ -145,11 +146,11 @@ public class ClientConnection {
         return flights;
     }
 
-    public List<String> getBookingsFromAccount() throws IOException{
+    public List<String> getBookingsFromAccount() throws IOException, InterruptedException {
         Frame frame = new Frame(Frame.ACCOUNT_FLIGHTS);
         List<String> bookings = new ArrayList<>();
-        tc.send(frame);
-        Frame response = tc.receive();
+        dm.send(frame);
+        Frame response = dm.receive(Frame.ACCOUNT_FLIGHTS);
         if(response.getType()==Frame.ACCOUNT_FLIGHTS){
             for(byte[] b : response.getData()){
                 bookings.add(new String(b,StandardCharsets.UTF_8));
@@ -158,11 +159,11 @@ public class ClientConnection {
         return bookings;
     }
 
-    public String[] pedeNotificacoes() throws IOException {
-        tc.send(Frame.NOTIF,new ArrayList<>());
+    public String[] pedeNotificacoes() throws IOException, InterruptedException {
+        dm.send(Frame.NOTIF,new ArrayList<>());
 
 
-        List<byte[]> resp =tc.receive().getData();
+        List<byte[]> resp =dm.receive(Frame.NOTIF).getData();
         String[] res = new String[resp.size()];
         for(int i = 0; i < resp.size() ; i++){
             String bookingId = new String(resp.get(i), StandardCharsets.UTF_8);
@@ -171,14 +172,14 @@ public class ClientConnection {
         return res;
     }
 
-    public String adicionaDefaultFlight(String origem, String destino, String capacidade) throws IOException, FlightNotFoundException, DayClosedException, AccountException, WrongCredentials, UnknownError, BookingNotFound, FlightFullException, MaxFlightsException, IncompatibleFlightsException {
+    public String adicionaDefaultFlight(String origem, String destino, String capacidade) throws IOException, FlightNotFoundException, DayClosedException, AccountException, WrongCredentials, UnknownError, BookingNotFound, FlightFullException, MaxFlightsException, IncompatibleFlightsException, InterruptedException {
         Frame frame = new Frame(Frame.FLIGHT);
         frame.addBlock(origem.getBytes(StandardCharsets.UTF_8));
         frame.addBlock(destino.getBytes(StandardCharsets.UTF_8));
         frame.addBlock(Helpers.intToByteArray(Integer.parseInt(capacidade)));
-        tc.send(frame);
+        dm.send(frame);
 
-        List<byte[]> resp = tc.receive().getData();
+        List<byte[]> resp = dm.receive(Frame.BASIC).getData();
         String str = "Error";
         if(!resp.isEmpty()){
             str = new String(resp.get(0),StandardCharsets.UTF_8);
@@ -187,22 +188,22 @@ public class ClientConnection {
         return str;
     }
 
-    public void cancelaDia(LocalDate date) throws IOException, FlightNotFoundException, DayClosedException, AccountException, WrongCredentials, UnknownError, BookingNotFound, FlightFullException, MaxFlightsException, IncompatibleFlightsException {
+    public void cancelaDia(LocalDate date) throws IOException, FlightNotFoundException, DayClosedException, AccountException, WrongCredentials, UnknownError, BookingNotFound, FlightFullException, MaxFlightsException, IncompatibleFlightsException, InterruptedException {
         Frame frame = new Frame(Frame.CANCEL_DAY);
         frame.addBlock(Helpers.localDateToBytes(date));
-        tc.send(frame);
+        dm.send(frame);
 
-        List<byte[]> resp = tc.receive().getData();
+        List<byte[]> resp = dm.receive(Frame.BASIC).getData();
         if(!resp.isEmpty()){
             trataErros(new String(resp.get(0),StandardCharsets.UTF_8));
         }
     }
 
-    public void cancelaBooking(String bookingId) throws IOException, FlightNotFoundException, DayClosedException, AccountException, WrongCredentials, UnknownError, BookingNotFound, FlightFullException, MaxFlightsException, IncompatibleFlightsException {
+    public void cancelaBooking(String bookingId) throws IOException, FlightNotFoundException, DayClosedException, AccountException, WrongCredentials, UnknownError, BookingNotFound, FlightFullException, MaxFlightsException, IncompatibleFlightsException, InterruptedException {
         Frame frame = new Frame(Frame.CANCEL);
         frame.addBlock(bookingId.getBytes(StandardCharsets.UTF_8));
-        tc.send(frame);
-        Frame resp=tc.receive();
+        dm.send(frame);
+        Frame resp=dm.receive(Frame.BASIC);
         String msg=new String(resp.getDataAt(0),StandardCharsets.UTF_8);
         trataErros(msg);
     }
@@ -238,7 +239,7 @@ public class ClientConnection {
 
     public void close(){
         try{
-            tc.close();
+            dm.close();
         }catch(IOException e){
             e.printStackTrace();
         }

@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class Desmultiplexer implements Runnable {
     private final TaggedConnection tc;
@@ -69,6 +70,7 @@ public class Desmultiplexer implements Runnable {
     public Desmultiplexer(TaggedConnection tc){
         this.tc = tc;
         entradas = new HashMap<>();
+        l = new ReentrantLock();
     }
 
     public void start(){
