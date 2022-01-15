@@ -24,16 +24,16 @@ public class Server {
     public static void main(String[] args) throws Exception {
         ServerSocket ss = new ServerSocket(Helpers.PORT);
         DataBase db = new DataBase();
+        db.addClient("eu",new char[]{' '},false);
 
-        List<Flight> flights = new ArrayList<>();
-        for(Flight f : db.getDefaultFlights()){
-            if(f.getOrigin().equals("Oporto")&&f.getDestination().equals("Lisbon")) flights.add(f);
+        while(true) {
+            Socket s = ss.accept();
+            ServerConnection sc = new ServerConnection(s,db);
+
+            for (int i = 0; i < WORKERS_PER_CONNECTION; ++i)
+                new Thread(sc).start();
         }
 
-        Booking b = new Booking("kpokdyt", "tortuga" , LocalDate.of(2022,9,12),flights);
-
-        db.writeAccounts(ACCOUNTS_FILE);
-        db.writeBookings(BOOKING_FILE);
     }
 }
 
@@ -41,7 +41,6 @@ public class Server {
         try{
             boolean run=true;
             DataBase base=new DataBase();
-            base.addClient("teste",new char[]{'c','o','n','a'});
             ServerSocket serverSocket=new ServerSocket(Helpers.PORT);
 
             while(run){

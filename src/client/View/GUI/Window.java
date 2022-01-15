@@ -15,9 +15,9 @@ import java.util.ArrayList;
 
 public class Window {
 
-    protected static final String WARNING="AVISO";
-    protected static final String SUCCESS="SUCCESSO";
-    protected static final String ERROR="ERRO";
+    protected static final String WARNING="WARNING";
+    protected static final String SUCCESS="SUCCESS";
+    protected static final String ERROR="ERROR";
     protected static final String INFO="INFO";
     protected static final String OTHER="MESSAGE";
 
@@ -82,8 +82,8 @@ public class Window {
         }
         else{
             int result;
-            if(base)result = JOptionPane.showConfirmDialog(frame,"Tem a certeza que quer fechar a aplicação","Encerrar",JOptionPane.YES_NO_OPTION);
-            else result = JOptionPane.showConfirmDialog(frame,"Tem a certeza que quer fechar esta janela?","Fechar",JOptionPane.YES_NO_OPTION);
+            if(base)result = JOptionPane.showConfirmDialog(frame,"Are you sure you want to close the app?","SHUT DOWN",JOptionPane.YES_NO_OPTION);
+            else result = JOptionPane.showConfirmDialog(frame,"Are you sure you want to close this window?","CLOSE",JOptionPane.YES_NO_OPTION);
             if(result==JOptionPane.YES_OPTION)return close(false);
             else return false;
         }
@@ -145,7 +145,7 @@ public class Window {
         JPanel panel1=new JPanel(new FlowLayout(FlowLayout.CENTER));
         JPanel panel2=new JPanel(new FlowLayout(FlowLayout.CENTER));
 
-        JLabel label = new JLabel(" está autenticado");
+        JLabel label = new JLabel(getController().getLoggedUser()+" is logged-in");
         panel1.add(label);
 
         JButton logout=new JButton("Logout");
@@ -156,7 +156,7 @@ public class Window {
             else setBase(true);
         });
 
-        JButton cancel=new JButton("Cancelar");
+        JButton cancel=new JButton("Cancel");
         cancel.addActionListener(e->this.close(true));
         cancel.setBackground(Color.RED);
         cancel.setForeground(Color.WHITE);

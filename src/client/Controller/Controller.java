@@ -65,4 +65,8 @@ public class Controller {
     public void cancelBooking(String id) throws IOException, BookingNotFound, FlightNotFoundException, WrongCredentials, FlightFullException, IncompatibleFlightsException, DayClosedException, MaxFlightsException, AccountException, UnknownError {
         connection.cancelaBooking(id);
     }
+
+    public String getLoggedUser(){
+        return connection.getLoggedUser();
+    }
 }

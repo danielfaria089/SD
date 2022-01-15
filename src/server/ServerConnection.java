@@ -172,15 +172,11 @@ public class ServerConnection implements Runnable, AutoCloseable{
         tc.send(success);
     }
 
-    public void cancelaBooking(Frame frame) throws IOException, DayClosedException, AccountException, BookingNotFound, WrongFrameTypeException {
-        Frame status = new Frame(Frame.BASIC,new ArrayList<>());
-        List<byte[]> resp = frame.getData();
-        if(resp.size() == 1){
-            dataBase.cancelBooking(loggedUser,new String(resp.get(0),StandardCharsets.UTF_8));
-            tc.send(status);
-        }else{
-            throw new WrongFrameTypeException();
-        }
+    public void cancelaBooking(Frame frame) throws IOException, WrongFrameTypeException, AccountException, DayClosedException, BookingNotFound {
+        dataBase.cancelBooking(new String(frame.getDataAt(0), StandardCharsets.UTF_8),loggedUser);
+        Frame success=new Frame(Frame.BASIC);
+        success.addBlock("SUCCESS".getBytes(StandardCharsets.UTF_8));
+        tc.send(success);
     }
 
     public void cancelaDia(Frame frame) throws IOException, WrongFrameTypeException {

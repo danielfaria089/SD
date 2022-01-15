@@ -105,7 +105,7 @@ public class ColBookings {
 
 
     public void cancelBooking(String bookingID,String clientID) throws BookingNotFound, DayClosedException, AccountException {
-        l_r.lock();
+        l_w.lock();
         try{
             if (!reservations.get(bookingID).getClientID().equals(clientID)) throw new AccountException();
             else {
@@ -114,17 +114,12 @@ public class ColBookings {
                 if (flights == null) throw new BookingNotFound();
                 else if (flights.isClosed()) throw new DayClosedException();
                 else {
-                    l_w.lock();
-                    try {
-                        reservations.remove(bookingID); // só depois remover
-                        flights.cancelBooking(booking);
-                    }finally {
-                        l_w.unlock();
-                    }
+                    reservations.remove(bookingID); // só depois remover
+                    flights.cancelBooking(booking);
                 }
             }
         }finally {
-            l_r.unlock();
+            l_w.unlock();
         }
     }
 

@@ -18,6 +18,7 @@ import java.util.TreeSet;
 
 public class ClientConnection {
     private TaggedConnection tc;
+    private String logged;
 
     public ClientConnection(String ip,int port) throws IOException {
         Socket s =new Socket(ip,port);
@@ -39,9 +40,13 @@ public class ClientConnection {
                     String bookingId = new String(resp.get(i), StandardCharsets.UTF_8);
                     res[i] = bookingId;
                 }
+                logged=username;
                 return res;
             }
-            else if(resposta.equals("ADMIN"))return new String[]{"2"};
+            else if(resposta.equals("ADMIN")) {
+                logged=username;
+                return new String[]{"2"};
+            }
             else return new String[]{"-1"};
         }
         else throw new WrongFrameTypeException();
@@ -183,11 +188,13 @@ public class ClientConnection {
         Frame frame = new Frame(Frame.CANCEL);
         frame.addBlock(bookingId.getBytes(StandardCharsets.UTF_8));
         tc.send(frame);
+        Frame resp=tc.receive();
+        String msg=new String(resp.getDataAt(0),StandardCharsets.UTF_8);
+        trataErros(msg);
+    }
 
-        List<byte[]> resp = tc.receive().getData();
-        if(!resp.isEmpty()){
-            trataErros(new String(resp.get(0),StandardCharsets.UTF_8));
-        }
+    public String getLoggedUser(){
+        return logged;
     }
 
     public void trataErros(String erro) throws AccountException, BookingNotFound, DayClosedException, FlightNotFoundException, FlightFullException, WrongCredentials, UnknownError, MaxFlightsException, IncompatibleFlightsException {

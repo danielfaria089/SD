@@ -191,14 +191,9 @@ public class DataBase {
     //FUNCIONALIDADE 6:
 
     public void cancelBooking(String bookingID,String clientID) throws BookingNotFound, DayClosedException, AccountException {
-        l_r.lock();
+        l_w.lock();
         try {
             bookings.cancelBooking(bookingID, clientID);
-        }finally {
-            l_w.lock();
-            l_r.unlock();
-        }
-        try {
             this.accounts.get(clientID).removeBooking(bookingID);
         }finally {
             l_w.unlock();
