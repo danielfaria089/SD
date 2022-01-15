@@ -9,6 +9,7 @@ import common.StopOvers;
 import java.io.*;
 import java.time.DateTimeException;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.locks.Lock;
@@ -35,7 +36,8 @@ public class DataBase {
         try{
             accounts=new HashMap<>();
             readAccounts(ACCOUNTS_FILE);
-            bookings=new ColBookings(new FlightCalculator(FLIGHTS_FILE),BOOKING_FILE);
+            bookings=new ColBookings(new FlightCalculator(FLIGHTS_FILE));
+            readBookings(BOOKING_FILE);
         } catch (IOException | FlightNotFoundException | DayClosedException | MaxFlightsException | IncompatibleFlightsException | FlightFullException e) {
             e.printStackTrace();
         }
@@ -262,6 +264,21 @@ public class DataBase {
         }
         writer.flush();
         writer.close();
+    }
+
+    private void readBookings(String filename) throws IOException, FlightNotFoundException, DayClosedException, FlightFullException, MaxFlightsException, IncompatibleFlightsException {
+        BufferedReader reader = new BufferedReader((new FileReader(filename)));
+        String line;
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        while ((line = reader.readLine())!=null){
+            String[] strings = line.split(";");
+            List<Flight> flights = new ArrayList<>();
+            for(int i = 3; i < strings.length; i++){
+                flights.add(bookings.getDefaultFlight(strings[i]));
+            }
+            Booking a = new Booking(strings[0], strings[1],LocalDate.parse(strings[2], formatter),flights);
+            addBooking(a);
+        }
     }
 
     public void writeBookings(String filename) throws IOException {
