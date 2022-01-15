@@ -34,7 +34,7 @@ public class ColBookings {
         l_r.lock();
         try {
             List<StopOvers> stopOversList = flightCalculator.getFlights(origin, destination);
-            Set<Booking> bookings = new TreeSet<>(Comparator.comparing(Booking::getDate));
+            Set<Booking> bookings = new TreeSet<>(Comparator.comparing(Booking::getBookingID));
             for (LocalDate date : dates) {
                 if(!flightsMap.containsKey(date)) {
                     flightsMap.put(date, new Flights(flightCalculator.getDefaultFlights()));
@@ -166,11 +166,15 @@ public class ColBookings {
                 flightsMap.put(date, new Flights(flightCalculator.getDefaultFlights()));
             }
             flightsMap.get(date).cancelDay();
+            List<Booking> remove = new ArrayList<>();
             for(Booking booking:reservations.values()){
                 if(booking.getDate().equals(date)) {
                     notif.add(booking.createNotification());
-                    reservations.remove(booking.getBookingID());
+                    remove.add(reservations.get(booking.getBookingID()));
                 }
+            }
+            for(Booking b : remove){
+                reservations.remove(b.getBookingID());
             }
             return notif;
         }finally {
