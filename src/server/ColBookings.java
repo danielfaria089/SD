@@ -59,7 +59,7 @@ public class ColBookings {
     }
 
     public String getFirstBooking(String idCliente,List<String> percurso, List<LocalDate> dates) throws IncompatibleFlightsException, MaxFlightsException, FlightFullException, DayClosedException, FlightNotFoundException {
-        l_r.lock();
+        l_w.lock();
         try {
             for (LocalDate date : dates) {
                 Flights flights = flightsMap.get(date);
@@ -73,20 +73,16 @@ public class ColBookings {
                     }
                     stopOvers.add(f);
                 }
-                l_w.lock();
-                try {
-                    if (i == percurso.size()) {
-                        Booking b = new Booking(idCliente, date, stopOvers);
-                        addBooking(b);
-                        return b.getBookingID();
-                    }
-                } finally {
-                    l_w.lock();
+
+                if (i == percurso.size()) {
+                    Booking b = new Booking(idCliente, date, stopOvers);
+                    addBooking(b);
+                    return b.getBookingID();
                 }
             }
             return "Fn";
         }finally {
-            l_r.unlock();
+            l_w.unlock();
         }
     }
 
@@ -214,12 +210,12 @@ public class ColBookings {
             List<Flight> aux = new ArrayList<>(b.getStopOvers().getStopOvers());
             StringBuilder s = new StringBuilder();
             for(Flight f : aux){
-                s.append(f.getId());
+                s.append(";").append(f.getId());
             }
             writer.println(b.getBookingID() + ";" +
                     b.getClientID() + ";" +
-                    b.getDate() + ";" +
-                    s.toString());
+                    b.getDate() +
+                    s);
         }
         writer.flush();
         writer.close();

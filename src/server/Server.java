@@ -4,6 +4,10 @@ import common.Account;
 import common.Booking;
 import common.Flight;
 import common.Helpers;
+import sun.misc.Signal;
+
+
+import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.time.LocalDate;
@@ -22,18 +26,26 @@ public class Server {
     final static int WORKERS_PER_CONNECTION = 3;
 
     public static void main(String[] args) throws Exception {
-        ServerSocket ss = new ServerSocket(Helpers.PORT);
-        DataBase db = new DataBase();
-        db.addClient("eu",new char[]{' '},false);
+            ServerSocket ss = new ServerSocket(Helpers.PORT);
+            DataBase db = new DataBase();
 
-        while(true) {
-            Socket s = ss.accept();
-            ServerConnection sc = new ServerConnection(s,db);
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                try {
+                    db.writeAccounts(ACCOUNTS_FILE);
+                    db.writeBookings(BOOKING_FILE);
+                    db.writeFlights(FLIGHTS_FILE);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }));
 
-            for (int i = 0; i < WORKERS_PER_CONNECTION; ++i)
-                new Thread(sc).start();
-        }
+            while (true) {
+                Socket s = ss.accept();
+                ServerConnection sc = new ServerConnection(s, db);
 
+                for (int i = 0; i < WORKERS_PER_CONNECTION; ++i)
+                    new Thread(sc).start();
+            }
     }
 }
 

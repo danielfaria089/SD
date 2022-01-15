@@ -116,7 +116,7 @@ public class FlightCalculator {
                         if (f != null) stopOvers.addFlight(f);
                     }
                     stopOversList.add(stopOvers);
-                } catch (IncompatibleFlightsException | MaxFlightsException e) {
+                } catch (IncompatibleFlightsException e) {
                     e.printStackTrace();
                 }
             }
