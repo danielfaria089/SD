@@ -174,6 +174,7 @@ public class DataBase {
 
     public void addBooking(Booking booking) throws FlightFullException, FlightNotFoundException, DayClosedException {
         bookings.addBooking(booking);
+        accounts.get(booking.getClientID()).addBooking(booking.getBookingID());
     }
 
     public String registerBooking(String idCliente,List<String> percurso, LocalDate start, LocalDate end) throws DayClosedException, MaxFlightsException, FlightFullException, IncompatibleFlightsException, FlightNotFoundException { // Funcionalidade 5

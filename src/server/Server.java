@@ -25,10 +25,21 @@ public class Server {
         ServerSocket ss = new ServerSocket(Helpers.PORT);
         DataBase db = new DataBase();
 
-        Flight f = new Flight("hjdotyu", "iraque","new york", 234);
-        db.addDefaultFlight(f);
+        List<Flight> flight = new ArrayList<>();
+        Set<Flight> flights = new HashSet<>();
+        flights = db.getDefaultFlights();
+        for(Flight fax : flights){
+            if(fax.getOrigin().equals("Oporto")&& fax.getDestination().equals("Lisbon")){
+                flight.add(fax);
+                break;
+            }
+        }
 
-        db.writeFlights(FLIGHTS_FILE);
+        Booking b = new Booking("jahbdha", "tortuga", LocalDate.of(2022,9,11), flight);
+
+        db.addBooking(b);
+        db.writeBookings(BOOKING_FILE);
+        db.writeAccounts(ACCOUNTS_FILE);
     }
 }
 
