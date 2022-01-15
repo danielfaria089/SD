@@ -248,7 +248,10 @@ public class ClientWindow extends Window{
                     try {
                         String result=getController().reservation(pair.snd,pair.fst);
                         popupMessage("ID de Reserva: "+result,SUCCESS);
-                    } catch (Exception exception) {
+                    }catch (FlightFullException ffe){
+                        popupMessage("Flight is already full",ERROR);
+                    }
+                    catch (Exception exception) {
                         popupMessage("INTERNAL ERROR:"+exception.getMessage(),ERROR);
                     }
                 }

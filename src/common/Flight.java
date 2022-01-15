@@ -133,5 +133,6 @@ public class Flight {
         origin = new String(bytes.get(1),StandardCharsets.UTF_8);
         destination = new String(bytes.get(2),StandardCharsets.UTF_8);
         capacity = Helpers.intFromByteArray(bytes.get(3));
+        accountIds = new TreeSet<>();
     }
 }
